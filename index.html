@@ -14,6 +14,7 @@
         body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
         .animate-in { animation: fadeIn 0.5s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .glass { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px); border: 1px solid rgba(255, 192, 203, 0.3); }
     </style>
 </head>
 <body class="bg-[#FAFAFB]">
@@ -23,7 +24,7 @@
         const { useState, useMemo, useEffect } = React;
 
         // Lucid Icon Wrapper for CDN
-        const LucideIcon = ({ name, size = 24, className = "", fill = "none" }) => {
+        const LucideIcon = ({ name, size = 24, className = "" }) => {
             useEffect(() => {
                 if (window.lucide) window.lucide.createIcons();
             }, [name]);
@@ -68,10 +69,50 @@
                 {
                     name: "Phase 6: Countdown (Weeks 21-28)",
                     weeks: Array.from({ length: 8 }, (_, i) => ({
-                        id: 21 + i, workouts: { Monday: { title: "Maintain & Perfect", items: ["W21-24: Strength maintenance", "W25: Final Assessment", "W26: Confidence Lifts", "W27: Taper week", "W28: Wedding Week - Gentle movement only"] }, Tuesday: { title: "Taper Walk", items: ["Steady state walking", "W28: Light 20m stroll"] }, Wednesday: { title: "Basketball / Hydrate", items: ["W28: Skip/Rest Day"] }, Thursday: { title: "Lower Taper", items: ["Bodyweight only", "Focus on mobility"] }, Friday: { title: "Hydration Priority", items: ["Yoga + High Water Intake", "Reduce Sodium (W28)"] }, Saturday: { title: "Final Rest", items: ["Complete Rest - Hydrate & Relax"] }, Sunday: { title: "July 31: Wedding Day!", items: ["Gentle Stretch", "Hydrate", "Enjoy your day!"] } }, meals: { Breakfast: "Light Fueling", Lunch: "Clean Prep", Dinner: "W28: No salt / High Water", Snacks: "No Alcohol W28" }
+                        id: 21 + i, workouts: { Monday: { title: "Maintain & Perfect", items: ["W21-24: Strength maintenance", "W25: Final Assessment", "W26: Confidence Lifts", "W27: Taper week", "W28: Wedding Week - Gentle movement only"] }, Tuesday: { title: "Taper Walk", items: ["Steady state walking", "W28: Light 20m stroll"] }, Wednesday: { title: "Basketball / Hydrate", items: ["W28: Skip/Rest Day"] }, Thursday: { title: "Lower Taper", items: ["Bodyweight only", "Focus on mobility"] }, Friday: { title: "Hydration Priority", items: ["Yoga + High Water Intake", "Reduce Sodium (W28)"] }, Saturday: { title: "Final Rest", items: ["Complete Rest - Hydrate & Relax"] }, Sunday: { title: "July 31: Wedding Day!", items: ["Gentle Stretch", "Hydrate", "Enjoy your day!"] } }, meals: { Breakfast: "Light Fueling", Lunch: "Clean Prep", Dinner: "W27-28: No salt / High Water", Snacks: "No Alcohol W28" }
                     }))
                 }
             ]
+        };
+
+        const Countdown = () => {
+            const targetDate = new Date("2026-07-31T00:00:00");
+            const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+
+            useEffect(() => {
+                const timer = setInterval(() => {
+                    const now = new Date();
+                    const diff = targetDate - now;
+
+                    if (diff <= 0) {
+                        clearInterval(timer);
+                    } else {
+                        setTimeLeft({
+                            days: Math.floor(diff / (1000 * 60 * 60 * 24)),
+                            hours: Math.floor((diff / (1000 * 60 * 60)) % 24),
+                            minutes: Math.floor((diff / 1000 / 60) % 60),
+                            seconds: Math.floor((diff / 1000) % 60)
+                        });
+                    }
+                }, 1000);
+                return () => clearInterval(timer);
+            }, []);
+
+            return (
+                <div className="flex justify-center gap-4 py-6">
+                    {[
+                        { label: "Days", val: timeLeft.days },
+                        { label: "Hrs", val: timeLeft.hours },
+                        { label: "Min", val: timeLeft.minutes },
+                        { label: "Sec", val: timeLeft.seconds }
+                    ].map((item, i) => (
+                        <div key={i} className="flex flex-col items-center bg-white border border-pink-100 px-4 py-2 rounded-2xl shadow-sm min-w-[70px]">
+                            <span className="text-2xl font-black text-pink-500 leading-tight">{item.val}</span>
+                            <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider">{item.label}</span>
+                        </div>
+                    ))}
+                </div>
+            );
         };
 
         const App = () => {
@@ -85,7 +126,7 @@
 
             const [measurements, setMeasurements] = useState(() => {
                 const saved = localStorage.getItem('wedding_prep_measurements');
-                return saved ? JSON.parse(saved) : [{ date: 'Initial (Week 0)', weight: '', waist: '', hips: '' }];
+                return saved ? JSON.parse(saved) : [{ date: 'Initial', weight: '', waist: '', hips: '' }];
             });
 
             useEffect(() => {
@@ -118,17 +159,16 @@
             return (
                 <div className="min-h-screen bg-[#FAFAFB] p-4 md:p-10 text-gray-900">
                     <div className="max-w-6xl mx-auto">
-                        <header className="mb-12 flex flex-col md:flex-row md:items-center justify-between gap-6">
-                            <div className="text-center md:text-left">
-                                <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-white border border-slate-100 text-pink-500 rounded-full text-[10px] font-black uppercase tracking-[0.2em] mb-4 shadow-sm">
-                                    <LucideIcon name="calendar" size={12} />
-                                    Wedding Countdown: July 31
-                                </div>
-                                <h1 className="text-5xl md:text-7xl font-black text-slate-900 tracking-tighter">
-                                    Fit for the <span className="text-pink-500 italic">Big Day</span>
-                                </h1>
+                        <header className="mb-8 flex flex-col items-center text-center">
+                            <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-white border border-slate-100 text-pink-500 rounded-full text-[10px] font-black uppercase tracking-[0.2em] mb-4 shadow-sm">
+                                <LucideIcon name="heart" size={12} className="fill-pink-500" />
+                                Our Big Day: July 31, 2026
                             </div>
-                            <div className="flex gap-2 p-1.5 bg-slate-200/50 rounded-2xl backdrop-blur-sm mx-auto md:mx-0">
+                            <h1 className="text-5xl md:text-7xl font-black text-slate-900 tracking-tighter mb-2">
+                                Fit for the <span className="text-pink-500 italic">Big Day</span>
+                            </h1>
+                            <Countdown />
+                            <div className="flex gap-2 p-1.5 bg-slate-200/50 rounded-2xl backdrop-blur-sm mt-4">
                                 <button onClick={() => setActiveTab('tracker')} className={`px-8 py-3 rounded-xl text-sm font-black transition-all ${activeTab === 'tracker' ? 'bg-white shadow-md' : 'text-slate-500'}`}>Plan</button>
                                 <button onClick={() => setActiveTab('measurements')} className={`px-8 py-3 rounded-xl text-sm font-black transition-all ${activeTab === 'measurements' ? 'bg-white shadow-md' : 'text-slate-500'}`}>Stats</button>
                             </div>
@@ -179,12 +219,17 @@
                                                     ))}
                                                 </div>
                                             </div>
-                                            <div className="bg-slate-900 p-8 rounded-[2.5rem] text-white">
-                                                <div className="flex items-center gap-2 mb-4 text-orange-400"><LucideIcon name="flame" size={20} /><span className="text-xs font-black uppercase">Phase Focus</span></div>
-                                                <h4 className="text-2xl font-black mb-4">{currentPhase.name.split(':')[1] || currentPhase.name}</h4>
-                                                <div className="flex items-center justify-between text-xs font-bold bg-white/10 p-4 rounded-2xl border border-white/10">
-                                                    <span><LucideIcon name="clock" size={14} className="inline mr-2" />Week {currentWeekId}/28</span>
-                                                    <span className="text-orange-400">{Math.round((currentWeekId/28)*100)}% Complete</span>
+                                            <div className="bg-slate-900 p-8 rounded-[2.5rem] text-white overflow-hidden relative shadow-xl">
+                                                <div className="relative z-10">
+                                                    <div className="flex items-center gap-2 mb-4 text-orange-400"><LucideIcon name="flame" size={20} /><span className="text-xs font-black uppercase">Phase Focus</span></div>
+                                                    <h4 className="text-2xl font-black mb-4">{currentPhase.name.split(':')[1] || currentPhase.name}</h4>
+                                                    <div className="flex items-center justify-between text-xs font-bold bg-white/10 p-4 rounded-2xl border border-white/10">
+                                                        <span><LucideIcon name="calendar" size={14} className="inline mr-2" />Week {currentWeekId}/28</span>
+                                                        <span className="text-orange-400">{Math.round((currentWeekId/28)*100)}% Complete</span>
+                                                    </div>
+                                                </div>
+                                                <div className="absolute -right-10 -bottom-10 opacity-10">
+                                                    <LucideIcon name="trophy" size={200} />
                                                 </div>
                                             </div>
                                         </div>
@@ -194,7 +239,7 @@
                                 <div className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 animate-in">
                                     <div className="flex justify-between items-center mb-10">
                                         <h3 className="text-2xl font-black">Progress Log</h3>
-                                        <button onClick={() => setMeasurements([...measurements, { date: `Week ${currentWeekId}`, weight: '', waist: '', hips: '' }])} className="bg-pink-500 text-white px-6 py-2.5 rounded-2xl text-sm font-black shadow-lg">New Log</button>
+                                        <button onClick={() => setMeasurements([...measurements, { date: `Week ${currentWeekId}`, weight: '', waist: '', hips: '' }])} className="bg-pink-500 text-white px-6 py-2.5 rounded-2xl text-sm font-black shadow-lg hover:bg-pink-600 active:scale-95 transition-all">New Log</button>
                                     </div>
                                     <div className="overflow-x-auto">
                                         <table className="w-full text-left">
@@ -205,13 +250,24 @@
                                                 {measurements.map((log, i) => (
                                                     <tr key={i}>
                                                         <td className="py-6"><input className="bg-transparent font-black w-full outline-none" value={log.date} onChange={(e) => updateMeasurement(i, 'date', e.target.value)} /></td>
-                                                        <td className="py-6 text-center"><input placeholder="lbs" className="w-20 text-center bg-slate-100 rounded-xl p-2 font-bold outline-none" value={log.weight} onChange={(e) => updateMeasurement(i, 'weight', e.target.value)} /></td>
-                                                        <td className="py-6 text-center"><input placeholder="in" className="w-20 text-center bg-slate-100 rounded-xl p-2 font-bold outline-none" value={log.waist} onChange={(e) => updateMeasurement(i, 'waist', e.target.value)} /></td>
-                                                        <td className="py-6 text-center"><input placeholder="in" className="w-20 text-center bg-slate-100 rounded-xl p-2 font-bold outline-none" value={log.hips} onChange={(e) => updateMeasurement(i, 'hips', e.target.value)} /></td>
+                                                        <td className="py-6 text-center"><input placeholder="lbs" className="w-20 text-center bg-slate-100 rounded-xl p-2 font-bold outline-none focus:ring-2 focus:ring-pink-300 transition-all" value={log.weight} onChange={(e) => updateMeasurement(i, 'weight', e.target.value)} /></td>
+                                                        <td className="py-6 text-center"><input placeholder="in" className="w-20 text-center bg-slate-100 rounded-xl p-2 font-bold outline-none focus:ring-2 focus:ring-pink-300 transition-all" value={log.waist} onChange={(e) => updateMeasurement(i, 'waist', e.target.value)} /></td>
+                                                        <td className="py-6 text-center"><input placeholder="in" className="w-20 text-center bg-slate-100 rounded-xl p-2 font-bold outline-none focus:ring-2 focus:ring-pink-300 transition-all" value={log.hips} onChange={(e) => updateMeasurement(i, 'hips', e.target.value)} /></td>
                                                     </tr>
                                                 ))}
                                             </tbody>
                                         </table>
+                                    </div>
+                                    <div className="mt-12 p-8 bg-gradient-to-br from-pink-500 to-rose-600 rounded-[2.5rem] text-white flex flex-col md:flex-row items-center gap-6">
+                                        <div className="p-5 bg-white/20 rounded-3xl backdrop-blur-md">
+                                            <LucideIcon name="heart" size={40} className="fill-white" />
+                                        </div>
+                                        <div className="text-center md:text-left">
+                                            <h4 className="text-xl font-black mb-1">Stay Confident</h4>
+                                            <p className="text-sm text-pink-50 opacity-90 leading-relaxed max-w-xl">
+                                                You are getting stronger every day. Remember that your wedding day is a celebration of love, and this plan is just to help you feel your most energized and healthy self!
+                                            </p>
+                                        </div>
                                     </div>
                                 </div>
                             )}
