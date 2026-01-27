@@ -1,912 +1,882 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { 
-  Dumbbell, 
-  Utensils, 
-  ShoppingBasket, 
-  CheckCircle2, 
-  Circle, 
-  Calendar, 
-  TrendingUp, 
-  Coffee, 
-  Moon, 
-  Sun,
-  Info,
-  Trophy,
-  PlayCircle,
-  X,
-  ExternalLink,
-  Shuffle,
-  ThumbsUp,
-  ThumbsDown,
-  Music,
-  Copy,
-  Camera,
-  Flame,
-  Lock,
-  Image as ImageIcon,
-  Heart,
-  BookOpen,
-  Sparkles,
-  Gem,
-  AlertTriangle,
-  PiggyBank,
-  MessageCircle,
-  Crown,
-  Award,
-  Zap,
-  Star,
-  PenTool,
-  Smile,
-  Frown,
-  Meh,
-  CloudRain,
-  Droplets,
-  Pill,
-  PhoneOff,
-  Plus,
-  Trash2,
-  BarChart2,
-  Settings,
-  ArrowUpRight,
-  Target,
-  Loader2,
-  Edit2,
-  AlertOctagon,
-  MessageSquare
-} from 'lucide-react';
-
-// --- FIREBASE SETUP ---
-import { initializeApp } from "firebase/app";
-import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "firebase/auth";
-import { getFirestore, doc, setDoc, onSnapshot, collection, getDoc } from "firebase/firestore";
-
-// Initialize Firebase with your specific config as fallback
-const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
-  apiKey: "AIzaSyDCPpL5QxwugpiKtqOMxxE07cKmFXqev8c",
-  authDomain: "jada-workout-app.firebaseapp.com",
-  projectId: "jada-workout-app",
-  storageBucket: "jada-workout-app.firebasestorage.app",
-  messagingSenderId: "226714322940",
-  appId: "1:226714322940:web:004854e900b8a96b879479"
-};
-
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-
-// Use a default app ID for the artifact path if not provided by environment
-const appId = typeof __app_id !== 'undefined' ? __app_id : 'jada-workout-app-default';
-
-// --- AI GENERATION ---
-const generateSassyMessage = async (context) => {
-  const apiKey = ""; // API Key provided by environment
-  const prompt = `
-    You are a sassy, high-maintenance, but loving Maid of Honor. Your best friend (the user) is getting married in ${context.days} days.
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Un-Gym: Wedding Edition</title>
     
-    Her Stats Today:
-    - Streak: ${context.streak} days.
-    - Mood: ${context.mood || 'Neutral'}.
-    - Missed Workout Yesterday: ${context.missed ? 'YES' : 'NO'}.
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
     
-    Task: Write a 1-2 sentence message for her dashboard. 
-    Tone: Funny, slightly petty if she missed yesterday, but encouraging if she's on a streak. Mention the wedding/dress/photos if relevant to motivate her.
-    Output: Just the message text. No quotes.
-  `;
-
-  try {
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
-    });
+    <!-- React and ReactDOM -->
+    <script type="importmap">
+      {
+        "imports": {
+          "react": "https://esm.sh/react@18.2.0",
+          "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
+          "lucide-react": "https://esm.sh/lucide-react@0.309.0"
+        }
+      }
+    </script>
     
-    if (!response.ok) throw new Error('AI request failed');
-    
-    const data = await response.json();
-    return data.candidates?.[0]?.content?.parts?.[0]?.text || "Eyes on the prize, babe. The aisle is waiting.";
-  } catch (e) {
-    console.error("AI Error", e);
-    const fallbacks = [
-        "Do it for the photos.",
-        "I'm watching you. Go workout.",
-        "Sweating now means shining later.",
-        "Don't make me come over there."
-    ];
-    return fallbacks[Math.floor(Math.random() * fallbacks.length)];
-  }
-};
+    <!-- Babel to compile JSX in the browser -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-// --- DATA & CONFIGURATION ---
+    <style>
+      /* Custom animations */
+      @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+      @keyframes slide-up { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+      @keyframes float-up { 
+        0% { transform: translateY(0) scale(0.5); opacity: 0; } 
+        50% { opacity: 1; }
+        100% { transform: translateY(-100vh) scale(1.5); opacity: 0; } 
+      }
+      .animate-fade-in { animation: fade-in 0.5s ease-out; }
+      .animate-slide-up { animation: slide-up 0.5s ease-out; }
+      .animate-float-up { animation: float-up 3s ease-out forwards; }
+    </style>
+</head>
+<body class="bg-stone-50 text-stone-900 font-sans">
+    <div id="root"></div>
 
-const WEDDING_DATE = new Date("2026-07-31T00:00:00");
-const XP_PER_TASK = 10;
+    <script type="text/babel" data-type="module">
+      import React, { useState, useEffect } from 'react';
+      import ReactDOM from 'react-dom/client';
+      import { 
+        Dumbbell, Utensils, ShoppingBasket, CheckCircle2, Circle, Calendar, TrendingUp, Coffee, Moon, Sun, Info, Trophy, PlayCircle, X, ExternalLink, Shuffle, ThumbsUp, ThumbsDown, Music, Copy, Camera, Flame, Lock, Image as ImageIcon, Heart, BookOpen, Sparkles, Gem, AlertTriangle, PiggyBank, MessageCircle, Crown, Award, Zap, Star, PenTool, Smile, Frown, Meh, CloudRain, Droplets, Pill, PhoneOff, Plus, Trash2, BarChart2, Settings, ArrowUpRight, Target, Loader2, Edit2, AlertOctagon, MessageSquare, WifiOff
+      } from 'lucide-react';
 
-const JOURNAL_PROMPTS = [
-  "What is one thing that made you smile today?",
-  "I am grateful for...",
-  "One thing I can control today is...",
-  "How is my energy level right now?",
-  "What is a wedding detail I'm actually excited about?",
-  "I am proud of myself for...",
-  "What do I need to let go of today?",
-  "My body feels...",
-  "Who is someone that supports me?",
-  "Describe your ideal morning."
-];
+      // --- FIREBASE IMPORTS (ESM for Browser) ---
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+      import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+      import { getFirestore, doc, setDoc, onSnapshot, collection, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-const RANKS = [
-  { threshold: 0, title: "Chill Bride", icon: "😎" },
-  { threshold: 50, title: "Sweating for the Dress", icon: "👗" },
-  { threshold: 150, title: "Fiancée Focus", icon: "💍" },
-  { threshold: 300, title: "Aisle Athlete", icon: "👟" },
-  { threshold: 500, title: "Wedding Warrior", icon: "⚔️" },
-  { threshold: 1000, title: "Honeymoon Hottie", icon: "🔥" }
-];
+      // --- CONFIGURATION ---
+      const firebaseConfig = {
+        apiKey: "AIzaSyDCPpL5QxwugpiKtqOMxxE07cKmFXqev8c",
+        authDomain: "jada-workout-app.firebaseapp.com",
+        projectId: "jada-workout-app",
+        storageBucket: "jada-workout-app.firebasestorage.app",
+        messagingSenderId: "226714322940",
+        appId: "1:226714322940:web:004854e900b8a96b879479"
+      };
 
-const ACHIEVEMENTS = [
-  { id: 'first_step', title: "First Step", desc: "Complete your first task", icon: <Zap size={18} /> },
-  { id: 'hydrated', title: "Hydrated Queen", desc: "Drink 8 cups of water", icon: <Droplets size={18} /> },
-  { id: 'streak_5', title: "Consistency Queen", desc: "Reach 5 Day Streak", icon: <Flame size={18} /> },
-  { id: 'perfect_day', title: "100%", desc: "Complete all tasks in a day", icon: <Star size={18} /> },
-  { id: 'survivor', title: "Survivor", desc: "Use the Bailout Button", icon: <AlertTriangle size={18} /> }
-];
+      // Initialize Firebase
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+      const db = getFirestore(app);
+      const appId = 'jada-workout-app-web'; // Fixed ID for your web app
 
-const WORKOUT_DATABASE = {
-  beginner: {
-    modifier: "Low Intensity",
-    reps_scale: "x1",
-    notes: "Focus on form. Take breaks.",
-    exercises: {
-      m1: { name: "Wall Sit", reps: "30 seconds", video: "wall sit form" },
-      m2: { name: "Chair Squats", reps: "3 sets of 10", video: "chair squat form" },
-      t1: { name: "Wall Push-ups", reps: "3 sets of 8", video: "wall push up form" },
-      t2: { name: "Water Bottle Curls", reps: "3 sets of 12", video: "bicep curl form" }
-    }
-  },
-  intermediate: {
-    modifier: "Standard",
-    reps_scale: "x1.5",
-    notes: "Push through the burn.",
-    exercises: {
-      m1: { name: "The Hundred", reps: "100 pumps", video: "pilates the hundred tutorial" },
-      m2: { name: "Goblet Squats", reps: "3 sets of 12", video: "goblet squat form" },
-      t1: { name: "Knee Push-ups", reps: "3 sets of 10", video: "knee push up form" },
-      t2: { name: "Dumbbell Rows", reps: "3 sets of 12", video: "dumbbell row form" }
-    }
-  },
-  advanced: {
-    modifier: "Bride Beast Mode",
-    reps_scale: "x2",
-    notes: "Failure is the goal.",
-    exercises: {
-      m1: { name: "Weighted Teasers", reps: "3 sets of 10", video: "pilates teaser form" },
-      m2: { name: "Jump Squats", reps: "4 sets of 15", video: "jump squat form" },
-      t1: { name: "Plyo Push-ups", reps: "3 sets to failure", video: "plyometric push up" },
-      t2: { name: "Renegade Rows", reps: "4 sets of 10/arm", video: "renegade row form" }
-    }
-  }
-};
+      // --- CONSTANTS ---
+      const WEDDING_DATE = new Date("2026-07-31T00:00:00");
+      const XP_PER_TASK = 10;
 
-const getDailyWorkout = (day, level, penaltyActive) => {
-  const plan = WORKOUT_DATABASE[level] || WORKOUT_DATABASE.intermediate;
-  const mapEx = (ex) => ({ ...ex, videoTerm: ex.video || ex.videoTerm });
+      const QUOTES = [
+        "It doesn't get easier, you just get stronger.",
+        "Your body can stand almost anything. It's your mind that you have to convince.",
+        "30 minutes is 2% of your day. No excuses.",
+        "Discipline is doing what you hate to do like you love it.",
+        "Sweat is just your fat crying.",
+        "Don't wish for it. Work for it."
+      ];
 
-  const baseMap = {
-    Monday: [
-      { id: 'm1', ...mapEx(plan.exercises.m1), note: plan.notes },
-      { id: 'm2', ...mapEx(plan.exercises.m2), note: "Keep core tight." },
-      { id: 'm3', name: "Glute Bridges", reps: "3 sets of 15", note: "Squeeze at top.", videoTerm: "glute bridge" }
-    ],
-    Tuesday: [
-      { id: 't1', ...mapEx(plan.exercises.t1), note: plan.notes },
-      { id: 't2', ...mapEx(plan.exercises.t2), note: "Control the weight." },
-      { id: 't3', name: "Shoulder Press", reps: "3 sets of 10", note: "Don't arch back.", videoTerm: "overhead press" }
-    ],
-    Wednesday: [
-      { id: 'w1', name: "Active Recovery Walk", reps: "20-30 mins", note: "Just move.", videoTerm: "walking posture" },
-      { id: 'w2', name: "Stretching", reps: "10 mins", note: "Full body.", videoTerm: "full body stretch" }
-    ],
-    Thursday: [
-      { id: 'th1', name: "Lunge Variations", reps: "3 sets of 10/leg", note: "Knee touches floor.", videoTerm: "lunge variations" },
-      { id: 'th2', name: "Plank Hold", reps: "3 x 45s", note: "Flat back.", videoTerm: "plank form" }
-    ],
-    Friday: [
-      { id: 'f1', name: "Full Body Circuit", reps: "3 Rounds", note: "High intensity.", videoTerm: "hiit circuit" }
-    ],
-    Saturday: [
-      { id: 's1', name: "Fun Cardio", reps: "45 mins", note: "Dance, Hike, Run.", videoTerm: "cardio workout" }
-    ],
-    Sunday: [
-      { id: 'su1', name: "Rest & Prep", reps: "Relax", note: "You earned it.", videoTerm: "meditation" }
-    ]
-  };
+      const JOURNAL_PROMPTS = [
+        "What is one thing that made you smile today?",
+        "I am grateful for...",
+        "One thing I can control today is...",
+        "How is my energy level right now?",
+        "What is a wedding detail I'm actually excited about?",
+        "I am proud of myself for...",
+        "What do I need to let go of today?",
+        "My body feels...",
+        "Who is someone that supports me?",
+        "Describe your ideal morning."
+      ];
 
-  const workout = baseMap[day] || baseMap['Monday'];
+      const RANKS = [
+        { threshold: 0, title: "Chill Bride", icon: "😎" },
+        { threshold: 50, title: "Sweating for the Dress", icon: "👗" },
+        { threshold: 150, title: "Fiancée Focus", icon: "💍" },
+        { threshold: 300, title: "Aisle Athlete", icon: "👟" },
+        { threshold: 500, title: "Wedding Warrior", icon: "⚔️" },
+        { threshold: 1000, title: "Honeymoon Hottie", icon: "🔥" }
+      ];
 
-  if (penaltyActive) {
-    return [
-      { 
-        id: 'penalty', 
-        name: "DEBT: 75 Burpees", 
-        reps: "75 Total", 
-        note: "You skipped yesterday. This is the interest rate.", 
-        videoTerm: "burpee form",
-        isPenalty: true
-      },
-      ...workout
-    ];
-  }
+      const ACHIEVEMENTS = [
+        { id: 'first_step', title: "First Step", desc: "Complete your first task", icon: <Zap size={18} /> },
+        { id: 'hydrated', title: "Hydrated Queen", desc: "Drink 8 cups of water", icon: <Droplets size={18} /> },
+        { id: 'streak_5', title: "Consistency Queen", desc: "Reach 5 Day Streak", icon: <Flame size={18} /> },
+        { id: 'perfect_day', title: "100%", desc: "Complete all tasks in a day", icon: <Star size={18} /> },
+        { id: 'survivor', title: "Survivor", desc: "Use the Bailout Button", icon: <AlertTriangle size={18} /> }
+      ];
 
-  return workout;
-};
+      const WORKOUT_DATABASE = {
+        beginner: {
+          modifier: "Low Intensity",
+          reps_scale: "x1",
+          notes: "Focus on form. Take breaks.",
+          exercises: {
+            m1: { name: "Wall Sit", reps: "30 seconds", video: "wall sit form" },
+            m2: { name: "Chair Squats", reps: "3 sets of 10", video: "chair squat form" },
+            t1: { name: "Wall Push-ups", reps: "3 sets of 8", video: "wall push up form" },
+            t2: { name: "Water Bottle Curls", reps: "3 sets of 12", video: "bicep curl form" }
+          }
+        },
+        intermediate: {
+          modifier: "Standard",
+          reps_scale: "x1.5",
+          notes: "Push through the burn.",
+          exercises: {
+            m1: { name: "The Hundred", reps: "100 pumps", video: "pilates the hundred tutorial" },
+            m2: { name: "Goblet Squats", reps: "3 sets of 12", video: "goblet squat form" },
+            t1: { name: "Knee Push-ups", reps: "3 sets of 10", video: "knee push up form" },
+            t2: { name: "Dumbbell Rows", reps: "3 sets of 12", video: "dumbbell row form" }
+          }
+        },
+        advanced: {
+          modifier: "Bride Beast Mode",
+          reps_scale: "x2",
+          notes: "Failure is the goal.",
+          exercises: {
+            m1: { name: "Weighted Teasers", reps: "3 sets of 10", video: "pilates teaser form" },
+            m2: { name: "Jump Squats", reps: "4 sets of 15", video: "jump squat form" },
+            t1: { name: "Plyo Push-ups", reps: "3 sets to failure", video: "plyometric push up" },
+            t2: { name: "Renegade Rows", reps: "4 sets of 10/arm", video: "renegade row form" }
+          }
+        }
+      };
 
-const SURVIVAL_WORKOUT = [
-  { id: 'surv1', name: "Jumping Jacks", reps: "1 minute", note: "Just move.", videoTerm: "jumping jacks" },
-  { id: 'surv2', name: "Air Squats", reps: "2 minutes", note: "Sit and stand.", videoTerm: "air squat" },
-  { id: 'surv3', name: "Big Stretch", reps: "2 minutes", note: "Breathe.", videoTerm: "stretching" }
-];
+      const getDailyWorkout = (day, level, penaltyActive) => {
+        const plan = WORKOUT_DATABASE[level] || WORKOUT_DATABASE.intermediate;
+        const mapEx = (ex) => ({ ...ex, videoTerm: ex.video || ex.videoTerm });
 
-const GROCERY_LIST = [
-  { category: "Produce", items: ["Spinach", "Bananas", "Berries", "Avocados", "Asparagus", "Apples", "Sweet Potatoes", "Bell Peppers", "Onion", "Garlic", "Broccoli", "Snap Peas"] },
-  { category: "Proteins", items: ["Chicken Breast", "Salmon", "Lean Beef", "Eggs", "Tuna"] },
-  { category: "Dairy", items: ["Greek Yogurt", "Almond Milk", "Cottage Cheese"] },
-  { category: "Pantry", items: ["Oats", "Quinoa", "Rice", "Tortillas", "Protein Powder", "Almonds"] },
-];
+        const baseMap = {
+          Monday: [
+            { id: 'm1', ...mapEx(plan.exercises.m1), note: plan.notes },
+            { id: 'm2', ...mapEx(plan.exercises.m2), note: "Keep core tight." },
+            { id: 'm3', name: "Glute Bridges", reps: "3 sets of 15", note: "Squeeze at top.", videoTerm: "glute bridge" }
+          ],
+          Tuesday: [
+            { id: 't1', ...mapEx(plan.exercises.t1), note: plan.notes },
+            { id: 't2', ...mapEx(plan.exercises.t2), note: "Control the weight." },
+            { id: 't3', name: "Shoulder Press", reps: "3 sets of 10", note: "Don't arch back.", videoTerm: "overhead press" }
+          ],
+          Wednesday: [
+            { id: 'w1', name: "Active Recovery Walk", reps: "20-30 mins", note: "Just move.", videoTerm: "walking posture" },
+            { id: 'w2', name: "Stretching", reps: "10 mins", note: "Full body.", videoTerm: "full body stretch" }
+          ],
+          Thursday: [
+            { id: 'th1', name: "Lunge Variations", reps: "3 sets of 10/leg", note: "Knee touches floor.", videoTerm: "lunge variations" },
+            { id: 'th2', name: "Plank Hold", reps: "3 x 45s", note: "Flat back.", videoTerm: "plank form" }
+          ],
+          Friday: [
+            { id: 'f1', name: "Full Body Circuit", reps: "3 Rounds", note: "High intensity.", videoTerm: "hiit circuit" }
+          ],
+          Saturday: [
+            { id: 's1', name: "Fun Cardio", reps: "45 mins", note: "Dance, Hike, Run.", videoTerm: "cardio workout" }
+          ],
+          Sunday: [
+            { id: 'su1', name: "Rest & Prep", reps: "Relax", note: "You earned it.", videoTerm: "meditation" }
+          ]
+        };
 
-const Header = ({ activeTab, setActiveTab, streak, rank }) => (
-  <header className="bg-stone-900 text-stone-50 p-4 sticky top-0 z-50 shadow-md">
-    <div className="max-w-md mx-auto">
-      <div className="flex justify-between items-center mb-3">
-        <div className="flex flex-col">
-          <h1 className="text-xl font-bold tracking-tight text-emerald-400">The Un-Gym</h1>
-          <div className="flex items-center gap-2">
-            <span className="text-lg">{rank.icon}</span>
-            <span className="text-xs font-bold text-stone-300 uppercase tracking-wide">{rank.title}</span>
-          </div>
-        </div>
-        <div className="flex flex-col items-end gap-1">
-          <div className="flex items-center gap-1 text-xs text-stone-400">
-            <Flame size={12} className={streak > 0 ? "text-orange-500 fill-orange-500" : "text-stone-600"} />
-            <span>{streak} Day Streak</span>
-          </div>
-        </div>
-      </div>
-      <nav className="flex justify-between pt-2 border-t border-stone-800">
-        {['dashboard', 'workout', 'meals', 'stats', 'life', 'grocery'].map(tab => (
-          <button key={tab} onClick={() => setActiveTab(tab)} className={`${activeTab === tab ? 'text-emerald-400' : 'text-stone-400'} hover:text-white transition flex flex-col items-center gap-1`}>
-            {tab === 'dashboard' && <TrendingUp size={20} />}
-            {tab === 'workout' && <Dumbbell size={20} />}
-            {tab === 'meals' && <Utensils size={20} />}
-            {tab === 'stats' && <BarChart2 size={20} />}
-            {tab === 'life' && <Sparkles size={20} />}
-            {tab === 'grocery' && <ShoppingBasket size={20} />}
-            <span className="text-[10px] capitalize">{tab === 'dashboard' ? 'Dash' : tab}</span>
-          </button>
-        ))}
-      </nav>
-    </div>
-  </header>
-);
+        const workout = baseMap[day] || baseMap['Monday'];
 
-const Confetti = () => (
-  <div className="fixed inset-0 pointer-events-none z-[100] flex items-center justify-center overflow-hidden">
-    <div className="absolute animate-float-up text-4xl top-1/2 left-1/4">🎉</div>
-    <div className="absolute animate-float-up text-4xl top-1/3 left-1/2 delay-100">👰‍♀️</div>
-    <div className="absolute animate-float-up text-4xl top-2/3 left-1/3 delay-200">💎</div>
-  </div>
-);
+        if (penaltyActive) {
+          return [
+            { 
+              id: 'penalty', 
+              name: "DEBT: 75 Burpees", 
+              reps: "75 Total", 
+              note: "You skipped yesterday. This is the interest rate.", 
+              videoTerm: "burpee form",
+              isPenalty: true
+            },
+            ...workout
+          ];
+        }
 
-const ProgressBar = ({ completed, total, color = "bg-emerald-500" }) => {
-  const percentage = Math.round((completed / total) * 100) || 0;
-  return (
-    <div className="w-full bg-stone-200 rounded-full h-4 mb-2 overflow-hidden">
-      <div className={`${color} h-4 rounded-full transition-all duration-500 ease-out`} style={{ width: `${percentage}%` }}></div>
-    </div>
-  );
-};
+        return workout;
+      };
 
-const VideoButton = ({ term }) => (
-  <a href={`https://www.youtube.com/results?search_query=${encodeURIComponent(term)}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-full transition-colors" onClick={(e) => e.stopPropagation()}>
-    <PlayCircle size={14} /> Demo
-  </a>
-);
+      const SURVIVAL_WORKOUT = [
+        { id: 'surv1', name: "Jumping Jacks", reps: "1 minute", note: "Just move.", videoTerm: "jumping jacks" },
+        { id: 'surv2', name: "Air Squats", reps: "2 minutes", note: "Sit and stand.", videoTerm: "air squat" },
+        { id: 'surv3', name: "Big Stretch", reps: "2 minutes", note: "Breathe.", videoTerm: "stretching" }
+      ];
 
-const AppleMusicButton = ({ term, name }) => (
-  <a href={`https://music.apple.com/us/search?term=${encodeURIComponent(term)}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-sm font-medium text-pink-600 bg-pink-50 hover:bg-pink-100 px-4 py-2 rounded-lg transition-colors w-full justify-center mb-4">
-    <Music size={18} /> Vibe: {name}
-  </a>
-);
+      const GROCERY_LIST = [
+        { category: "Produce", items: ["Spinach", "Bananas", "Berries", "Avocados", "Asparagus", "Apples", "Sweet Potatoes", "Bell Peppers", "Onion", "Garlic", "Broccoli", "Snap Peas"] },
+        { category: "Proteins", items: ["Chicken Breast", "Salmon", "Lean Beef", "Eggs", "Tuna"] },
+        { category: "Dairy", items: ["Greek Yogurt", "Almond Milk", "Cottage Cheese"] },
+        { category: "Pantry", items: ["Oats", "Quinoa", "Rice", "Tortillas", "Protein Powder", "Almonds"] },
+      ];
 
-const BailoutButton = ({ isActive, onToggle }) => (
-  <button onClick={onToggle} className={`w-full p-4 rounded-xl border-2 mb-6 flex items-center justify-between transition-all ${isActive ? "bg-red-50 border-red-200 text-red-800" : "bg-white border-red-100 text-red-500 hover:bg-red-50 hover:border-red-200"}`}>
-    <div className="flex items-center gap-3">
-      <div className={`p-2 rounded-full ${isActive ? "bg-red-200" : "bg-red-100"}`}><AlertTriangle size={20} className={isActive ? "text-red-700" : "text-red-500"} /></div>
-      <div className="text-left"><span className="block font-bold text-sm uppercase tracking-wide">{isActive ? "Survival Mode Active" : "Emergency Bailout"}</span><span className="text-xs opacity-80">{isActive ? "5 minutes only. No guilt." : "I literally can't today."}</span></div>
-    </div>
-    <div className={`text-sm font-bold px-3 py-1 rounded-lg ${isActive ? "bg-red-200" : "bg-red-100"}`}>{isActive ? "EXIT" : "SOS"}</div>
-  </button>
-);
+      // --- COMPONENTS ---
 
-const Dashboard = ({ day, stats, progress, weddingDays, badges, rank, xp, showConfetti, userLevel, penaltyActive, sassyMessage }) => {
-  const nextRank = RANKS.find(r => r.threshold > xp) || RANKS[RANKS.length - 1];
-  const currentRankIndex = RANKS.findIndex(r => r.title === rank.title);
-  const prevThreshold = RANKS[currentRankIndex].threshold;
-
-  return (
-    <div className="space-y-6 animate-fade-in relative">
-      {showConfetti && <Confetti />}
-      
-      {/* Sassy MOH Message */}
-      <div className="bg-pink-50 border border-pink-200 p-4 rounded-2xl relative">
-        <div className="flex items-start gap-3">
-          <div className="bg-pink-100 p-2 rounded-full text-pink-600 shrink-0">
-            <MessageSquare size={24} />
-          </div>
-          <div>
-            <span className="text-xs font-bold text-pink-400 uppercase tracking-wide block mb-1">Message from MOH</span>
-            <p className="text-stone-800 font-medium text-sm leading-relaxed">
-              {sassyMessage ? `"${sassyMessage}"` : <span className="flex items-center gap-2"><Loader2 size={14} className="animate-spin" /> Typing...</span>}
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <div className="bg-white p-6 rounded-2xl shadow-sm border border-stone-100">
-        <div className="flex justify-between items-start mb-2">
-          <div><h2 className="text-2xl font-bold text-stone-800">Hey, {stats.name}</h2><span className="text-xs text-stone-400 bg-stone-100 px-2 py-1 rounded-full uppercase tracking-wider font-bold">{userLevel} Plan</span></div>
-          <span className="text-2xl">{rank.icon}</span>
-        </div>
-        <div className="mb-4">
-          <div className="flex justify-between text-xs text-stone-400 font-bold uppercase mb-1"><span>{rank.title}</span><span>{Math.round(xp)} / {nextRank.threshold} XP</span></div>
-          <ProgressBar completed={xp - prevThreshold} total={nextRank.threshold - prevThreshold} color="bg-indigo-400" />
-        </div>
-        
-        <div className="flex gap-4 mt-2 pt-4 border-t border-stone-100">
-           <div className="flex-1 text-center border-r border-stone-100"><p className="text-xs text-stone-400 font-bold uppercase">Wedding In</p><p className="text-xl font-bold text-pink-500">{weddingDays} Days</p></div>
-           <div className="flex-1 text-center"><p className="text-xs text-stone-400 font-bold uppercase">Badges</p><p className="text-xl font-bold text-indigo-500">{badges.length}</p></div>
-        </div>
-      </div>
-
-      {penaltyActive && (
-        <div className="bg-red-50 border border-red-200 p-4 rounded-xl flex items-center gap-3 animate-pulse">
-          <div className="bg-red-100 p-2 rounded-full text-red-600"><AlertOctagon size={24} /></div>
-          <div>
-            <h4 className="font-bold text-red-800 text-sm">Workout Debt Active</h4>
-            <p className="text-red-600 text-xs">You missed yesterday. Pay the burpee tax.</p>
-          </div>
-        </div>
-      )}
-
-      <div className="bg-emerald-50 p-6 rounded-2xl border border-emerald-100">
-        <div className="flex justify-between items-center mb-4"><h3 className="font-semibold text-emerald-800 flex items-center gap-2"><Trophy size={20} /> Daily Progress</h3><span className="text-emerald-700 font-bold">{progress.completed}/{progress.total} Tasks</span></div>
-        <ProgressBar completed={progress.completed} total={progress.total} />
-      </div>
-    </div>
-  );
-};
-
-const StatsView = ({ history, weightLog, setWeightLog, saveWeight }) => {
-  const [newWeight, setNewWeight] = useState("");
-  const totalCompleted = history.reduce((acc, day) => acc + (day.completed || 0), 0);
-  const bestDay = history.reduce((max, day) => (day.completed || 0) > (max.completed || 0) ? day : max, history[0] || { completed: 0 });
-
-  return (
-    <div className="space-y-6 animate-slide-up">
-      <div className="bg-white p-6 rounded-2xl shadow-sm border border-stone-100">
-        <h2 className="text-xl font-bold text-stone-800 mb-4 flex items-center gap-2"><TrendingUp size={24} className="text-emerald-500" /> Performance</h2>
-        <div className="grid grid-cols-2 gap-4 mb-6">
-          <div className="bg-stone-50 p-3 rounded-xl text-center"><p className="text-xs text-stone-400 uppercase font-bold">Total Tasks</p><p className="text-2xl font-bold text-stone-800">{totalCompleted}</p></div>
-          <div className="bg-stone-50 p-3 rounded-xl text-center"><p className="text-xs text-stone-400 uppercase font-bold">Best Day</p><p className="text-2xl font-bold text-stone-800">{bestDay?.completed || 0}</p></div>
-        </div>
-        <div className="mb-4">
-          <p className="text-sm font-bold text-stone-600 mb-2">History (Last 7 Days)</p>
-          <div className="flex items-end justify-between h-24 gap-1">
-            {history.slice(-7).map((day, i) => (
-              <div key={i} className="flex-1 flex flex-col justify-end items-center gap-1 group">
-                <div className="w-full bg-emerald-300 rounded-t-sm transition-all group-hover:bg-emerald-500" style={{ height: `${Math.min(100, (day.completed || 0) * 10)}%` }}></div>
-                <span className="text-[8px] text-stone-400">{day.day ? day.day.substring(0,1) : '?'}</span>
+      const Header = ({ activeTab, setActiveTab, streak, rank, offline }) => (
+        <header className="bg-stone-900 text-stone-50 p-4 sticky top-0 z-50 shadow-md">
+          <div className="max-w-md mx-auto">
+            <div className="flex justify-between items-center mb-3">
+              <div className="flex flex-col">
+                <h1 className="text-xl font-bold tracking-tight text-emerald-400 flex items-center gap-2">
+                  The Un-Gym
+                  {offline && <WifiOff size={16} className="text-red-400" />}
+                </h1>
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">{rank.icon}</span>
+                  <span className="text-xs font-bold text-stone-300 uppercase tracking-wide">{rank.title}</span>
+                </div>
               </div>
-            ))}
-            {history.length === 0 && <p className="text-xs text-stone-400 w-full text-center self-center">No history yet.</p>}
-          </div>
-        </div>
-      </div>
-      <div className="bg-white p-6 rounded-2xl shadow-sm border border-stone-100">
-        <h3 className="font-bold text-stone-800 mb-4">Weight Tracker</h3>
-        <div className="flex gap-2 mb-4">
-          <input type="number" value={newWeight} onChange={(e) => setNewWeight(e.target.value)} placeholder="Current weight..." className="flex-1 p-2 rounded-lg border border-stone-200 text-sm" />
-          <button onClick={() => { if(newWeight) { saveWeight(newWeight); setNewWeight(""); } }} className="bg-stone-800 text-white px-4 rounded-lg text-sm font-bold">Log</button>
-        </div>
-        <div className="space-y-2">
-          {weightLog && weightLog.slice().reverse().slice(0, 3).map((log, i) => (
-            <div key={i} className="flex justify-between text-sm p-2 bg-stone-50 rounded-lg"><span className="text-stone-500">{log.date}</span><span className="font-bold text-stone-800">{log.weight} lbs</span></div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const SettingsModal = ({ userProfile, setUserProfile, onClose }) => (
-  <div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4">
-    <div className="bg-white rounded-2xl w-full max-w-sm p-6 shadow-xl animate-scale-in">
-      <div className="flex justify-between items-center mb-6"><h2 className="text-xl font-bold text-stone-800">Personalize Plan</h2><button onClick={onClose}><X size={24} className="text-stone-400" /></button></div>
-      <div className="space-y-4">
-        <div>
-          <label className="block text-sm font-bold text-stone-600 mb-2">Fitness Level</label>
-          <div className="space-y-2">
-            {['beginner', 'intermediate', 'advanced'].map(level => (
-              <button key={level} onClick={() => setUserProfile({...userProfile, level})} className={`w-full p-3 rounded-xl border-2 text-left transition ${userProfile.level === level ? 'border-emerald-500 bg-emerald-50 ring-1 ring-emerald-500' : 'border-stone-100 hover:border-stone-200'}`}>
-                <div className="font-bold text-sm capitalize">{level === 'beginner' ? 'I Hate This (Beginner)' : level === 'intermediate' ? "It's Complicated (Int)" : 'Bride Beast Mode (Adv)'}</div>
-                <div className="text-xs text-stone-500">{WORKOUT_DATABASE[level].modifier}</div>
-              </button>
-            ))}
-          </div>
-        </div>
-        <div>
-          <label className="block text-sm font-bold text-stone-600 mb-2">Main Goal</label>
-          <div className="flex gap-2">
-            {['Tone', 'Muscle', 'Weight'].map(g => (
-              <button key={g} onClick={() => setUserProfile({...userProfile, goal: g})} className={`flex-1 py-2 rounded-lg text-xs font-bold border transition ${userProfile.goal === g ? 'bg-stone-800 text-white border-stone-800' : 'bg-white text-stone-500 border-stone-200'}`}>{g}</button>
-            ))}
-          </div>
-        </div>
-      </div>
-      <button onClick={onClose} className="w-full mt-6 bg-emerald-500 text-white py-3 rounded-xl font-bold hover:bg-emerald-600 transition">Save Profile</button>
-    </div>
-  </div>
-);
-
-const WorkoutCard = ({ exercise, isCompleted, toggleComplete, isSwapped, onSwap, rating, onRate, isSurvival }) => (
-  <div className={`p-5 rounded-xl border transition-all mb-3 flex flex-col gap-3 relative overflow-hidden ${exercise.isPenalty ? 'bg-red-50 border-red-200 ring-2 ring-red-100' : isCompleted ? 'bg-emerald-50 border-emerald-200' : 'bg-white border-stone-100 hover:border-stone-300 shadow-sm'}`}>
-    <div className="flex items-start gap-4" onClick={() => toggleComplete(exercise.id)}>
-      <div className={`mt-1 min-w-[24px] cursor-pointer ${exercise.isPenalty ? 'text-red-500' : isCompleted ? 'text-emerald-500' : 'text-stone-300'}`}>{isCompleted ? <CheckCircle2 size={24} /> : <Circle size={24} />}</div>
-      <div className="flex-1 cursor-pointer">
-        <div className="flex justify-between items-start">
-          <h4 className={`font-bold text-lg ${exercise.isPenalty ? 'text-red-800' : isCompleted ? 'text-emerald-800 line-through' : 'text-stone-800'}`}>
-            {exercise.isPenalty && <span className="mr-2">🚨</span>}
-            {exercise.name}
-          </h4>
-        </div>
-        <p className={`${exercise.isPenalty ? 'text-red-600' : 'text-stone-600'} font-medium`}>{exercise.reps}</p>
-        {!isCompleted && (
-          <div className="mt-3 space-y-2">
-            <div className={`text-sm p-2 rounded-lg flex gap-2 items-start ${exercise.isPenalty ? 'bg-red-100 text-red-700' : 'bg-stone-50 text-stone-500'}`}><Info size={16} className="mt-0.5 shrink-0" /><span>{exercise.note}</span></div>
-            <div className="flex flex-wrap gap-2 mt-2">{exercise.videoTerm && <VideoButton term={exercise.videoTerm} />}</div>
-          </div>
-        )}
-      </div>
-    </div>
-    {isCompleted && (
-      <div className="flex justify-end gap-2 pt-2 border-t border-emerald-100">
-         <div className="flex items-center gap-1 text-xs text-amber-600 font-bold bg-amber-50 px-2 py-1 rounded-lg mr-auto">
-           <Zap size={12} />
-           +10 XP
-         </div>
-      </div>
-    )}
-  </div>
-);
-
-const MealCard = ({ type, meal, isCompleted, toggleComplete, customMeal, onLogCustom }) => {
-  const [isEditing, setIsEditing] = useState(false);
-  const [customText, setCustomText] = useState(customMeal || "");
-
-  const handleSave = (e) => {
-    e.stopPropagation();
-    if(customText.trim()) {
-      onLogCustom(customText);
-      setIsEditing(false);
-    }
-  };
-
-  return (
-    <div onClick={() => !isEditing && toggleComplete(`${type}-${meal}`)} className={`p-4 rounded-xl border transition-all mb-3 flex items-center justify-between gap-4 ${isCompleted ? 'bg-emerald-50 border-emerald-200 opacity-75' : 'bg-white border-stone-100 hover:border-stone-300 shadow-sm'}`}>
-      <div className="flex items-center gap-4 flex-1 cursor-pointer">
-        <div className={`min-w-[24px] ${isCompleted ? 'text-emerald-500' : 'text-stone-300'}`}>{isCompleted ? <CheckCircle2 size={24} /> : <Circle size={24} />}</div>
-        <div className="flex-1">
-          <div className="text-xs font-bold uppercase tracking-wider text-stone-400 mb-1 flex items-center gap-1">{type}</div>
-          {isEditing ? (
-            <div className="flex gap-2">
-              <input 
-                value={customText} 
-                onChange={(e) => setCustomText(e.target.value)} 
-                onClick={(e) => e.stopPropagation()}
-                className="text-sm font-medium border-b border-emerald-500 focus:outline-none bg-transparent w-full" 
-                placeholder="What did you eat?"
-                autoFocus
-              />
-              <button onClick={handleSave} className="text-emerald-600 bg-emerald-100 p-1 rounded"><CheckCircle2 size={16} /></button>
+              <div className="flex flex-col items-end gap-1">
+                <div className="flex items-center gap-1 text-xs text-stone-400">
+                  <Flame size={12} className={streak > 0 ? "text-orange-500 fill-orange-500" : "text-stone-600"} />
+                  <span>{streak} Day Streak</span>
+                </div>
+              </div>
             </div>
-          ) : (
-            <h4 className={`font-medium ${isCompleted ? 'text-emerald-800 line-through' : 'text-stone-800'}`}>
-              {customMeal || meal}
-              {customMeal && <span className="ml-2 text-[10px] text-amber-600 bg-amber-50 px-1 rounded border border-amber-100">Logged</span>}
-            </h4>
+            <nav className="flex justify-between pt-2 border-t border-stone-800">
+              {['dashboard', 'workout', 'meals', 'stats', 'life', 'grocery'].map(tab => (
+                <button key={tab} onClick={() => setActiveTab(tab)} className={`${activeTab === tab ? 'text-emerald-400' : 'text-stone-400'} hover:text-white transition flex flex-col items-center gap-1`}>
+                  {tab === 'dashboard' && <TrendingUp size={20} />}
+                  {tab === 'workout' && <Dumbbell size={20} />}
+                  {tab === 'meals' && <Utensils size={20} />}
+                  {tab === 'stats' && <BarChart2 size={20} />}
+                  {tab === 'life' && <Sparkles size={20} />}
+                  {tab === 'grocery' && <ShoppingBasket size={20} />}
+                  <span className="text-[10px] capitalize">{tab === 'dashboard' ? 'Dash' : tab}</span>
+                </button>
+              ))}
+            </nav>
+          </div>
+        </header>
+      );
+
+      const Confetti = () => (
+        <div className="fixed inset-0 pointer-events-none z-[100] flex items-center justify-center overflow-hidden">
+          <div className="absolute animate-float-up text-4xl top-1/2 left-1/4">🎉</div>
+          <div className="absolute animate-float-up text-4xl top-1/3 left-1/2 delay-100">👰‍♀️</div>
+          <div className="absolute animate-float-up text-4xl top-2/3 left-1/3 delay-200">💎</div>
+        </div>
+      );
+
+      const ProgressBar = ({ completed, total, color = "bg-emerald-500" }) => {
+        const percentage = Math.round((completed / total) * 100) || 0;
+        return (
+          <div className="w-full bg-stone-200 rounded-full h-4 mb-2 overflow-hidden">
+            <div className={`${color} h-4 rounded-full transition-all duration-500 ease-out`} style={{ width: `${percentage}%` }}></div>
+          </div>
+        );
+      };
+
+      const VideoButton = ({ term }) => (
+        <a href={`https://www.youtube.com/results?search_query=${encodeURIComponent(term)}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-full transition-colors" onClick={(e) => e.stopPropagation()}>
+          <PlayCircle size={14} /> Demo
+        </a>
+      );
+
+      const AppleMusicButton = ({ term, name }) => (
+        <a href={`https://music.apple.com/us/search?term=${encodeURIComponent(term)}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-sm font-medium text-pink-600 bg-pink-50 hover:bg-pink-100 px-4 py-2 rounded-lg transition-colors w-full justify-center mb-4">
+          <Music size={18} /> Vibe: {name}
+        </a>
+      );
+
+      const BailoutButton = ({ isActive, onToggle }) => (
+        <button onClick={onToggle} className={`w-full p-4 rounded-xl border-2 mb-6 flex items-center justify-between transition-all ${isActive ? "bg-red-50 border-red-200 text-red-800" : "bg-white border-red-100 text-red-500 hover:bg-red-50 hover:border-red-200"}`}>
+          <div className="flex items-center gap-3">
+            <div className={`p-2 rounded-full ${isActive ? "bg-red-200" : "bg-red-100"}`}><AlertTriangle size={20} className={isActive ? "text-red-700" : "text-red-500"} /></div>
+            <div className="text-left"><span className="block font-bold text-sm uppercase tracking-wide">{isActive ? "Survival Mode Active" : "Emergency Bailout"}</span><span className="text-xs opacity-80">{isActive ? "5 minutes only. No guilt." : "I literally can't today."}</span></div>
+          </div>
+          <div className={`text-sm font-bold px-3 py-1 rounded-lg ${isActive ? "bg-red-200" : "bg-red-100"}`}>{isActive ? "EXIT" : "SOS"}</div>
+        </button>
+      );
+
+      const Dashboard = ({ day, stats, progress, weddingDays, badges, rank, xp, showConfetti, userLevel, penaltyActive, sassyMessage }) => {
+        const nextRank = RANKS.find(r => r.threshold > xp) || RANKS[RANKS.length - 1];
+        const currentRankIndex = RANKS.findIndex(r => r.title === rank.title);
+        const prevThreshold = RANKS[currentRankIndex].threshold;
+
+        return (
+          <div className="space-y-6 animate-fade-in relative">
+            {showConfetti && <Confetti />}
+            
+            {/* Sassy MOH Message */}
+            <div className="bg-pink-50 border border-pink-200 p-4 rounded-2xl relative">
+              <div className="flex items-start gap-3">
+                <div className="bg-pink-100 p-2 rounded-full text-pink-600 shrink-0">
+                  <MessageSquare size={24} />
+                </div>
+                <div>
+                  <span className="text-xs font-bold text-pink-400 uppercase tracking-wide block mb-1">Message from MOH</span>
+                  <p className="text-stone-800 font-medium text-sm leading-relaxed">
+                    {sassyMessage ? `"${sassyMessage}"` : <span className="flex items-center gap-2"><Loader2 size={14} className="animate-spin" /> Typing...</span>}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white p-6 rounded-2xl shadow-sm border border-stone-100">
+              <div className="flex justify-between items-start mb-2">
+                <div><h2 className="text-2xl font-bold text-stone-800">Hey, {stats.name}</h2><span className="text-xs text-stone-400 bg-stone-100 px-2 py-1 rounded-full uppercase tracking-wider font-bold">{userLevel} Plan</span></div>
+                <span className="text-2xl">{rank.icon}</span>
+              </div>
+              <div className="mb-4">
+                <div className="flex justify-between text-xs text-stone-400 font-bold uppercase mb-1"><span>{rank.title}</span><span>{Math.round(xp)} / {nextRank.threshold} XP</span></div>
+                <ProgressBar completed={xp - prevThreshold} total={nextRank.threshold - prevThreshold} color="bg-indigo-400" />
+              </div>
+              
+              <div className="flex gap-4 mt-2 pt-4 border-t border-stone-100">
+                 <div className="flex-1 text-center border-r border-stone-100"><p className="text-xs text-stone-400 font-bold uppercase">Wedding In</p><p className="text-xl font-bold text-pink-500">{weddingDays} Days</p></div>
+                 <div className="flex-1 text-center"><p className="text-xs text-stone-400 font-bold uppercase">Badges</p><p className="text-xl font-bold text-indigo-500">{badges.length}</p></div>
+              </div>
+            </div>
+
+            {penaltyActive && (
+              <div className="bg-red-50 border border-red-200 p-4 rounded-xl flex items-center gap-3 animate-pulse">
+                <div className="bg-red-100 p-2 rounded-full text-red-600"><AlertOctagon size={24} /></div>
+                <div>
+                  <h4 className="font-bold text-red-800 text-sm">Workout Debt Active</h4>
+                  <p className="text-red-600 text-xs">You missed yesterday. Pay the burpee tax.</p>
+                </div>
+              </div>
+            )}
+
+            <div className="bg-emerald-50 p-6 rounded-2xl border border-emerald-100">
+              <div className="flex justify-between items-center mb-4"><h3 className="font-semibold text-emerald-800 flex items-center gap-2"><Trophy size={20} /> Daily Progress</h3><span className="text-emerald-700 font-bold">{progress.completed}/{progress.total} Tasks</span></div>
+              <ProgressBar completed={progress.completed} total={progress.total} />
+            </div>
+          </div>
+        );
+      };
+
+      const StatsView = ({ history, weightLog, setWeightLog, saveWeight }) => {
+        const [newWeight, setNewWeight] = useState("");
+        const totalCompleted = history.reduce((acc, day) => acc + (day.completed || 0), 0);
+        const bestDay = history.reduce((max, day) => (day.completed || 0) > (max.completed || 0) ? day : max, history[0] || { completed: 0 });
+
+        return (
+          <div className="space-y-6 animate-slide-up">
+            <div className="bg-white p-6 rounded-2xl shadow-sm border border-stone-100">
+              <h2 className="text-xl font-bold text-stone-800 mb-4 flex items-center gap-2"><TrendingUp size={24} className="text-emerald-500" /> Performance</h2>
+              <div className="grid grid-cols-2 gap-4 mb-6">
+                <div className="bg-stone-50 p-3 rounded-xl text-center"><p className="text-xs text-stone-400 uppercase font-bold">Total Tasks</p><p className="text-2xl font-bold text-stone-800">{totalCompleted}</p></div>
+                <div className="bg-stone-50 p-3 rounded-xl text-center"><p className="text-xs text-stone-400 uppercase font-bold">Best Day</p><p className="text-2xl font-bold text-stone-800">{bestDay?.completed || 0}</p></div>
+              </div>
+              <div className="mb-4">
+                <p className="text-sm font-bold text-stone-600 mb-2">History (Last 7 Days)</p>
+                <div className="flex items-end justify-between h-24 gap-1">
+                  {history.slice(-7).map((day, i) => (
+                    <div key={i} className="flex-1 flex flex-col justify-end items-center gap-1 group">
+                      <div className="w-full bg-emerald-300 rounded-t-sm transition-all group-hover:bg-emerald-500" style={{ height: `${Math.min(100, (day.completed || 0) * 10)}%` }}></div>
+                      <span className="text-[8px] text-stone-400">{day.day ? day.day.substring(0,1) : '?'}</span>
+                    </div>
+                  ))}
+                  {history.length === 0 && <p className="text-xs text-stone-400 w-full text-center self-center">No history yet.</p>}
+                </div>
+              </div>
+            </div>
+            <div className="bg-white p-6 rounded-2xl shadow-sm border border-stone-100">
+              <h3 className="font-bold text-stone-800 mb-4">Weight Tracker</h3>
+              <div className="flex gap-2 mb-4">
+                <input type="number" value={newWeight} onChange={(e) => setNewWeight(e.target.value)} placeholder="Current weight..." className="flex-1 p-2 rounded-lg border border-stone-200 text-sm" />
+                <button onClick={() => { if(newWeight) { saveWeight(newWeight); setNewWeight(""); } }} className="bg-stone-800 text-white px-4 rounded-lg text-sm font-bold">Log</button>
+              </div>
+              <div className="space-y-2">
+                {weightLog && weightLog.slice().reverse().slice(0, 3).map((log, i) => (
+                  <div key={i} className="flex justify-between text-sm p-2 bg-stone-50 rounded-lg"><span className="text-stone-500">{log.date}</span><span className="font-bold text-stone-800">{log.weight} lbs</span></div>
+                ))}
+              </div>
+            </div>
+          </div>
+        );
+      };
+
+      const SettingsModal = ({ userProfile, setUserProfile, onClose }) => (
+        <div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl w-full max-w-sm p-6 shadow-xl animate-scale-in">
+            <div className="flex justify-between items-center mb-6"><h2 className="text-xl font-bold text-stone-800">Personalize Plan</h2><button onClick={onClose}><X size={24} className="text-stone-400" /></button></div>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-bold text-stone-600 mb-2">Fitness Level</label>
+                <div className="space-y-2">
+                  {['beginner', 'intermediate', 'advanced'].map(level => (
+                    <button key={level} onClick={() => setUserProfile({...userProfile, level})} className={`w-full p-3 rounded-xl border-2 text-left transition ${userProfile.level === level ? 'border-emerald-500 bg-emerald-50 ring-1 ring-emerald-500' : 'border-stone-100 hover:border-stone-200'}`}>
+                      <div className="font-bold text-sm capitalize">{level === 'beginner' ? 'I Hate This (Beginner)' : level === 'intermediate' ? "It's Complicated (Int)" : 'Bride Beast Mode (Adv)'}</div>
+                      <div className="text-xs text-stone-500">{WORKOUT_DATABASE[level].modifier}</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-stone-600 mb-2">Main Goal</label>
+                <div className="flex gap-2">
+                  {['Tone', 'Muscle', 'Weight'].map(g => (
+                    <button key={g} onClick={() => setUserProfile({...userProfile, goal: g})} className={`flex-1 py-2 rounded-lg text-xs font-bold border transition ${userProfile.goal === g ? 'bg-stone-800 text-white border-stone-800' : 'bg-white text-stone-500 border-stone-200'}`}>{g}</button>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <button onClick={onClose} className="w-full mt-6 bg-emerald-500 text-white py-3 rounded-xl font-bold hover:bg-emerald-600 transition">Save Profile</button>
+          </div>
+        </div>
+      );
+
+      const WorkoutCard = ({ exercise, isCompleted, toggleComplete, isSwapped, onSwap, rating, onRate, isSurvival }) => (
+        <div className={`p-5 rounded-xl border transition-all mb-3 flex flex-col gap-3 relative overflow-hidden ${exercise.isPenalty ? 'bg-red-50 border-red-200 ring-2 ring-red-100' : isCompleted ? 'bg-emerald-50 border-emerald-200' : 'bg-white border-stone-100 hover:border-stone-300 shadow-sm'}`}>
+          <div className="flex items-start gap-4" onClick={() => toggleComplete(exercise.id)}>
+            <div className={`mt-1 min-w-[24px] cursor-pointer ${exercise.isPenalty ? 'text-red-500' : isCompleted ? 'text-emerald-500' : 'text-stone-300'}`}>{isCompleted ? <CheckCircle2 size={24} /> : <Circle size={24} />}</div>
+            <div className="flex-1 cursor-pointer">
+              <div className="flex justify-between items-start">
+                <h4 className={`font-bold text-lg ${exercise.isPenalty ? 'text-red-800' : isCompleted ? 'text-emerald-800 line-through' : 'text-stone-800'}`}>
+                  {exercise.isPenalty && <span className="mr-2">🚨</span>}
+                  {exercise.name}
+                </h4>
+              </div>
+              <p className={`${exercise.isPenalty ? 'text-red-600' : 'text-stone-600'} font-medium`}>{exercise.reps}</p>
+              {!isCompleted && (
+                <div className="mt-3 space-y-2">
+                  <div className={`text-sm p-2 rounded-lg flex gap-2 items-start ${exercise.isPenalty ? 'bg-red-100 text-red-700' : 'bg-stone-50 text-stone-500'}`}><Info size={16} className="mt-0.5 shrink-0" /><span>{exercise.note}</span></div>
+                  <div className="flex flex-wrap gap-2 mt-2">{exercise.videoTerm && <VideoButton term={exercise.videoTerm} />}</div>
+                </div>
+              )}
+            </div>
+          </div>
+          {isCompleted && (
+            <div className="flex justify-end gap-2 pt-2 border-t border-emerald-100">
+               <div className="flex items-center gap-1 text-xs text-amber-600 font-bold bg-amber-50 px-2 py-1 rounded-lg mr-auto">
+                 <Zap size={12} />
+                 +10 XP
+               </div>
+            </div>
           )}
         </div>
-      </div>
-      {!isCompleted && !isEditing && (
-        <button 
-          onClick={(e) => { e.stopPropagation(); setIsEditing(true); }}
-          className="text-stone-300 hover:text-emerald-500 p-2"
-        >
-          <Edit2 size={16} />
-        </button>
-      )}
-    </div>
-  );
-};
+      );
 
-const LifeTracker = ({ daysUntilWedding, book, setBook, mood, setMood, habits, toggleHabit, waterIntake, incrementWater, goals, addGoal, toggleGoal, removeGoal }) => {
-  const [prompt, setPrompt] = useState(JOURNAL_PROMPTS[0]);
-  const [newGoal, setNewGoal] = useState({ text: "", freq: "Daily" });
+      const MealCard = ({ type, meal, isCompleted, toggleComplete, customMeal, onLogCustom }) => {
+        const [isEditing, setIsEditing] = useState(false);
+        const [customText, setCustomText] = useState(customMeal || "");
 
-  const handleAddGoal = () => {
-    if (newGoal.text.trim()) {
-      addGoal(newGoal.text, newGoal.freq);
-      setNewGoal({ text: "", freq: "Daily" });
-    }
-  };
+        const handleSave = (e) => {
+          e.stopPropagation();
+          if(customText.trim()) {
+            onLogCustom(customText);
+            setIsEditing(false);
+          }
+        };
 
-  return (
-    <div className="animate-slide-up space-y-6">
-      <div className="bg-gradient-to-br from-pink-50 to-white p-6 rounded-2xl border border-pink-100 shadow-sm relative overflow-hidden flex items-center justify-between">
-        <div className="absolute top-0 right-0 p-6 opacity-10 text-pink-300"><Gem size={100} /></div>
-        <div className="relative z-10"><h2 className="text-2xl font-bold text-stone-800">Wedding Countdown</h2><p className="text-pink-600 font-medium">July 31, 2026</p></div>
-        <div className="bg-white/80 px-4 py-2 rounded-xl shadow-sm border border-pink-100 text-center relative z-10"><span className="block text-3xl font-bold text-pink-500">{daysUntilWedding}</span><span className="text-[10px] text-stone-400 uppercase font-bold">Days Left</span></div>
-      </div>
-
-      <div className="bg-sky-50 p-6 rounded-2xl border border-sky-100 shadow-sm">
-         <div className="flex items-center gap-2 mb-4"><Heart className="text-sky-600" size={24} /><h2 className="text-xl font-bold text-stone-800">Mind & Body</h2></div>
-         <div className="bg-white p-4 rounded-xl border border-sky-50 mb-4">
-           <p className="text-xs text-stone-400 font-bold uppercase mb-3">Daily Vibe</p>
-           <div className="flex justify-between px-2">
-             {['happy', 'calm', 'meh', 'stressed', 'tired'].map(m => (
-               <button key={m} onClick={() => setMood(m)} className={`text-2xl transition hover:scale-125 ${mood === m ? 'scale-125 drop-shadow-md' : 'opacity-50 grayscale hover:grayscale-0'}`}>
-                 {m === 'happy' && <Smile className="text-amber-500" />} {m === 'calm' && <CloudRain className="text-sky-500" />} {m === 'meh' && <Meh className="text-stone-500" />} {m === 'stressed' && <Frown className="text-rose-500" />} {m === 'tired' && <Moon className="text-indigo-500" />}
-               </button>
-             ))}
-           </div>
-         </div>
-         <div className="bg-white p-4 rounded-xl border border-sky-50 mb-4">
-            <div className="flex justify-between w-full mb-2"><span className="text-xs font-bold text-sky-700">Water</span><span className="text-xs font-bold text-sky-500">{waterIntake}/8</span></div>
-            <div className="flex gap-2 justify-between">
-               {[...Array(8)].map((_, i) => (
-                 <button key={i} onClick={() => incrementWater(i + 1)} className={`transition-all ${i < waterIntake ? 'text-sky-500 scale-110' : 'text-stone-300'}`}><Droplets size={20} fill={i < waterIntake ? "currentColor" : "none"} /></button>
-               ))}
-            </div>
-         </div>
-         <div className="bg-white p-5 rounded-xl border border-sky-50 relative overflow-hidden">
-            <div className="flex justify-between items-center mb-2 relative z-10">
-               <div className="flex items-center gap-2"><PenTool size={16} className="text-sky-600" /><span className="text-xs text-sky-600 font-bold uppercase">Journal Prompt</span></div>
-               <button onClick={() => setPrompt(JOURNAL_PROMPTS[Math.floor(Math.random()*JOURNAL_PROMPTS.length)])} className="text-[10px] bg-stone-100 hover:bg-stone-200 px-2 py-1 rounded-full text-stone-600 flex items-center gap-1 transition"><Shuffle size={10} /> New</button>
-            </div>
-            <p className="text-lg font-serif text-stone-800 italic text-center py-2 relative z-10">"{prompt}"</p>
-         </div>
-      </div>
-
-      <div className="bg-purple-50 p-6 rounded-2xl border border-purple-100 shadow-sm">
-        <div className="flex items-center gap-2 mb-4"><Target size={24} className="text-purple-600" /><h2 className="text-xl font-bold text-stone-800">Personal Goals</h2></div>
-        <div className="flex gap-2 mb-4">
-          <input type="text" value={newGoal.text} onChange={(e) => setNewGoal({...newGoal, text: e.target.value})} placeholder="New goal..." className="flex-1 px-4 py-2 rounded-xl border border-purple-200 text-sm focus:outline-none" />
-          <select value={newGoal.freq} onChange={(e) => setNewGoal({...newGoal, freq: e.target.value})} className="px-2 py-2 rounded-xl border border-purple-200 text-xs bg-white"><option>Daily</option><option>Weekly</option><option>Monthly</option></select>
-          <button onClick={handleAddGoal} className="bg-purple-600 text-white p-2 rounded-xl hover:bg-purple-700 transition"><Plus size={20} /></button>
-        </div>
-        <div className="space-y-2">
-          {goals.map(goal => (
-            <div key={goal.id} className="bg-white p-3 rounded-xl border border-purple-50 flex items-center justify-between group">
-              <div className="flex items-center gap-3">
-                <button onClick={() => toggleGoal(goal.id)} className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${goal.completed ? 'bg-purple-500 border-purple-500 text-white' : 'border-stone-300 text-transparent'}`}><CheckCircle2 size={14} /></button>
-                <div><p className={`font-medium text-sm ${goal.completed ? 'text-stone-400 line-through' : 'text-stone-700'}`}>{goal.text}</p><p className="text-[10px] text-purple-400 font-bold uppercase">{goal.freq}</p></div>
+        return (
+          <div onClick={() => !isEditing && toggleComplete(`${type}-${meal}`)} className={`p-4 rounded-xl border transition-all mb-3 flex items-center justify-between gap-4 ${isCompleted ? 'bg-emerald-50 border-emerald-200 opacity-75' : 'bg-white border-stone-100 hover:border-stone-300 shadow-sm'}`}>
+            <div className="flex items-center gap-4 flex-1 cursor-pointer">
+              <div className={`min-w-[24px] ${isCompleted ? 'text-emerald-500' : 'text-stone-300'}`}>{isCompleted ? <CheckCircle2 size={24} /> : <Circle size={24} />}</div>
+              <div className="flex-1">
+                <div className="text-xs font-bold uppercase tracking-wider text-stone-400 mb-1 flex items-center gap-1">{type}</div>
+                {isEditing ? (
+                  <div className="flex gap-2">
+                    <input 
+                      value={customText} 
+                      onChange={(e) => setCustomText(e.target.value)} 
+                      onClick={(e) => e.stopPropagation()}
+                      className="text-sm font-medium border-b border-emerald-500 focus:outline-none bg-transparent w-full" 
+                      placeholder="What did you eat?"
+                      autoFocus
+                    />
+                    <button onClick={handleSave} className="text-emerald-600 bg-emerald-100 p-1 rounded"><CheckCircle2 size={16} /></button>
+                  </div>
+                ) : (
+                  <h4 className={`font-medium ${isCompleted ? 'text-emerald-800 line-through' : 'text-stone-800'}`}>
+                    {customMeal || meal}
+                    {customMeal && <span className="ml-2 text-[10px] text-amber-600 bg-amber-50 px-1 rounded border border-amber-100">Logged</span>}
+                  </h4>
+                )}
               </div>
-              <button onClick={() => removeGoal(goal.id)} className="text-stone-300 hover:text-rose-400"><Trash2 size={16} /></button>
             </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-};
+            {!isCompleted && !isEditing && (
+              <button 
+                onClick={(e) => { e.stopPropagation(); setIsEditing(true); }}
+                className="text-stone-300 hover:text-emerald-500 p-2"
+              >
+                <Edit2 size={16} />
+              </button>
+            )}
+          </div>
+        );
+      };
 
-export default function App() {
-  const [activeTab, setActiveTab] = useState('dashboard');
-  const [currentDay, setCurrentDay] = useState('Monday');
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  
-  // Data States
-  const [completed, setCompleted] = useState({});
-  const [customMeals, setCustomMeals] = useState({});
-  const [userProfile, setUserProfile] = useState({ level: 'beginner', goal: 'Tone', name: "You" });
-  const [history, setHistory] = useState([]);
-  const [weightLog, setWeightLog] = useState([]);
-  const [goals, setGoals] = useState([]);
-  const [mood, setMood] = useState("");
-  const [habits, setHabits] = useState({ vitamins: false, sleep: false, phone: false });
-  const [waterIntake, setWaterIntake] = useState(0);
-  const [book, setBook] = useState({ title: "Atomic Habits", current: 0, total: 320 });
-  const [isBailoutMode, setIsBailoutMode] = useState(false);
-  const [penaltyActive, setPenaltyActive] = useState(false);
-  const [sassyMessage, setSassyMessage] = useState("");
-  
-  // Ephemeral
-  const [showConfetti, setShowConfetti] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
+      const LifeTracker = ({ daysUntilWedding, book, setBook, mood, setMood, habits, toggleHabit, waterIntake, incrementWater, goals, addGoal, toggleGoal, removeGoal }) => {
+        const [prompt, setPrompt] = useState(JOURNAL_PROMPTS[0]);
+        const [newGoal, setNewGoal] = useState({ text: "", freq: "Daily" });
 
-  // 1. Auth Init
-  useEffect(() => {
-    const initAuth = async () => {
-      try {
-        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-          await signInWithCustomToken(auth, __initial_auth_token);
-        } else {
-          await signInAnonymously(auth);
-        }
-      } catch (e) {
-        console.error("Auth failed", e);
-      }
-    };
-    initAuth();
-    const unsubscribe = onAuthStateChanged(auth, (u) => {
-      setUser(u);
-      if(!u) setLoading(false);
-    });
-    return () => unsubscribe();
-  }, []);
+        const handleAddGoal = () => {
+          if (newGoal.text.trim()) {
+            addGoal(newGoal.text, newGoal.freq);
+            setNewGoal({ text: "", freq: "Daily" });
+          }
+        };
 
-  // 2. Data Sync
-  useEffect(() => {
-    if (!user) return;
-    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    const today = days[new Date().getDay()];
-    setCurrentDay(today);
-    const todayDate = new Date().toLocaleDateString('en-CA');
+        return (
+          <div className="animate-slide-up space-y-6">
+            <div className="bg-gradient-to-br from-pink-50 to-white p-6 rounded-2xl border border-pink-100 shadow-sm relative overflow-hidden flex items-center justify-between">
+              <div className="absolute top-0 right-0 p-6 opacity-10 text-pink-300"><Gem size={100} /></div>
+              <div className="relative z-10"><h2 className="text-2xl font-bold text-stone-800">Wedding Countdown</h2><p className="text-pink-600 font-medium">July 31, 2026</p></div>
+              <div className="bg-white/80 px-4 py-2 rounded-xl shadow-sm border border-pink-100 text-center relative z-10"><span className="block text-3xl font-bold text-pink-500">{daysUntilWedding}</span><span className="text-[10px] text-stone-400 uppercase font-bold">Days Left</span></div>
+            </div>
 
-    // Listen to Main Settings/Profile
-    const unsubSettings = onSnapshot(doc(db, 'artifacts', appId, 'users', user.uid, 'data', 'main'), (doc) => {
-      if (doc.exists()) {
-        const data = doc.data();
-        if(data.userProfile) setUserProfile(data.userProfile);
-        if(data.goals) setGoals(data.goals);
-        if(data.weightLog) setWeightLog(data.weightLog);
-        if(data.history) setHistory(data.history);
-        if(data.book) setBook(data.book);
-      }
-      setLoading(false);
-    }, (error) => {
-        console.error("Error fetching settings:", error);
-        setLoading(false);
-    });
+            <div className="bg-sky-50 p-6 rounded-2xl border border-sky-100 shadow-sm">
+               <div className="flex items-center gap-2 mb-4"><Heart className="text-sky-600" size={24} /><h2 className="text-xl font-bold text-stone-800">Mind & Body</h2></div>
+               <div className="bg-white p-4 rounded-xl border border-sky-50 mb-4">
+                 <p className="text-xs text-stone-400 font-bold uppercase mb-3">Daily Vibe</p>
+                 <div className="flex justify-between px-2">
+                   {['happy', 'calm', 'meh', 'stressed', 'tired'].map(m => (
+                     <button key={m} onClick={() => setMood(m)} className={`text-2xl transition hover:scale-125 ${mood === m ? 'scale-125 drop-shadow-md' : 'opacity-50 grayscale hover:grayscale-0'}`}>
+                       {m === 'happy' && <Smile className="text-amber-500" />} {m === 'calm' && <CloudRain className="text-sky-500" />} {m === 'meh' && <Meh className="text-stone-500" />} {m === 'stressed' && <Frown className="text-rose-500" />} {m === 'tired' && <Moon className="text-indigo-500" />}
+                     </button>
+                   ))}
+                 </div>
+               </div>
+               <div className="bg-white p-4 rounded-xl border border-sky-50 mb-4">
+                  <div className="flex justify-between w-full mb-2"><span className="text-xs font-bold text-sky-700">Water</span><span className="text-xs font-bold text-sky-500">{waterIntake}/8</span></div>
+                  <div className="flex gap-2 justify-between">
+                     {[...Array(8)].map((_, i) => (
+                       <button key={i} onClick={() => incrementWater(i + 1)} className={`transition-all ${i < waterIntake ? 'text-sky-500 scale-110' : 'text-stone-300'}`}><Droplets size={20} fill={i < waterIntake ? "currentColor" : "none"} /></button>
+                     ))}
+                  </div>
+               </div>
+               <div className="bg-white p-5 rounded-xl border border-sky-50 relative overflow-hidden">
+                  <div className="flex justify-between items-center mb-2 relative z-10">
+                     <div className="flex items-center gap-2"><PenTool size={16} className="text-sky-600" /><span className="text-xs text-sky-600 font-bold uppercase">Journal Prompt</span></div>
+                     <button onClick={() => setPrompt(JOURNAL_PROMPTS[Math.floor(Math.random()*JOURNAL_PROMPTS.length)])} className="text-[10px] bg-stone-100 hover:bg-stone-200 px-2 py-1 rounded-full text-stone-600 flex items-center gap-1 transition"><Shuffle size={10} /> New</button>
+                  </div>
+                  <p className="text-lg font-serif text-stone-800 italic text-center py-2 relative z-10">"{prompt}"</p>
+               </div>
+            </div>
 
-    // Listen to Today's Log
-    const unsubToday = onSnapshot(doc(db, 'artifacts', appId, 'users', user.uid, 'daily_logs', todayDate), (doc) => {
-      if (doc.exists()) {
-        const data = doc.data();
-        if(data.completed) setCompleted(data.completed);
-        if(data.mood) setMood(data.mood);
-        if(data.habits) setHabits(data.habits);
-        if(data.waterIntake) setWaterIntake(data.waterIntake);
-        if(data.customMeals) setCustomMeals(data.customMeals);
-        if(data.sassyMessage) setSassyMessage(data.sassyMessage);
-      } else {
-        setCompleted({});
-        setMood("");
-        setHabits({ vitamins: false, sleep: false, phone: false });
-        setWaterIntake(0);
-        setCustomMeals({});
-        setSassyMessage("");
-      }
-    }, (error) => {
-        console.error("Error fetching daily log:", error);
-    });
+            <div className="bg-purple-50 p-6 rounded-2xl border border-purple-100 shadow-sm">
+              <div className="flex items-center gap-2 mb-4"><Target size={24} className="text-purple-600" /><h2 className="text-xl font-bold text-stone-800">Personal Goals</h2></div>
+              <div className="flex gap-2 mb-4">
+                <input type="text" value={newGoal.text} onChange={(e) => setNewGoal({...newGoal, text: e.target.value})} placeholder="New goal..." className="flex-1 px-4 py-2 rounded-xl border border-purple-200 text-sm focus:outline-none" />
+                <select value={newGoal.freq} onChange={(e) => setNewGoal({...newGoal, freq: e.target.value})} className="px-2 py-2 rounded-xl border border-purple-200 text-xs bg-white"><option>Daily</option><option>Weekly</option><option>Monthly</option></select>
+                <button onClick={handleAddGoal} className="bg-purple-600 text-white p-2 rounded-xl hover:bg-purple-700 transition"><Plus size={20} /></button>
+              </div>
+              <div className="space-y-2">
+                {goals.map(goal => (
+                  <div key={goal.id} className="bg-white p-3 rounded-xl border border-purple-50 flex items-center justify-between group">
+                    <div className="flex items-center gap-3">
+                      <button onClick={() => toggleGoal(goal.id)} className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${goal.completed ? 'bg-purple-500 border-purple-500 text-white' : 'border-stone-300 text-transparent'}`}><CheckCircle2 size={14} /></button>
+                      <div><p className={`font-medium text-sm ${goal.completed ? 'text-stone-400 line-through' : 'text-stone-700'}`}>{goal.text}</p><p className="text-[10px] text-purple-400 font-bold uppercase">{goal.freq}</p></div>
+                    </div>
+                    <button onClick={() => removeGoal(goal.id)} className="text-stone-300 hover:text-rose-400"><Trash2 size={16} /></button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        );
+      };
 
-    return () => {
-      unsubSettings();
-      unsubToday();
-    };
-  }, [user]);
-
-  // 3. Penalty Logic Check
-  useEffect(() => {
-    if (history.length > 0) {
-      const yesterday = new Date();
-      yesterday.setDate(yesterday.getDate() - 1);
-      const yesterdayStr = yesterday.toLocaleDateString('en-CA');
-      const lastEntry = history[history.length - 1];
-      const missingYesterday = lastEntry.date !== yesterdayStr && lastEntry.date !== new Date().toLocaleDateString('en-CA');
-      
-      if (lastEntry.date === yesterdayStr) {
-        if ((lastEntry.completed || 0) < (lastEntry.total || 1)) {
-          setPenaltyActive(true);
-        }
-      } else if (missingYesterday) {
-        setPenaltyActive(true);
-      }
-    }
-  }, [history]);
-
-  // 4. AI Message Trigger
-  useEffect(() => {
-    if (user && !sassyMessage && !loading) {
-      const runAI = async () => {
-        // Calculate Streak from history (simple version)
-        let calculatedStreak = 0;
-        // In real app, iterate history backwards to find consecutive days
+      function App() {
+        const [activeTab, setActiveTab] = useState('dashboard');
+        const [currentDay, setCurrentDay] = useState('Monday');
+        const [user, setUser] = useState(null);
+        const [loading, setLoading] = useState(true);
+        const [isOffline, setIsOffline] = useState(false);
         
-        const daysUntilWedding = Math.ceil(Math.abs(WEDDING_DATE - new Date()) / (1000 * 60 * 60 * 24));
+        // Data States
+        const [completed, setCompleted] = useState({});
+        const [customMeals, setCustomMeals] = useState({});
+        const [userProfile, setUserProfile] = useState({ level: 'beginner', goal: 'Tone', name: "You" });
+        const [history, setHistory] = useState([]);
+        const [weightLog, setWeightLog] = useState([]);
+        const [goals, setGoals] = useState([]);
+        const [mood, setMood] = useState("");
+        const [habits, setHabits] = useState({ vitamins: false, sleep: false, phone: false });
+        const [waterIntake, setWaterIntake] = useState(0);
+        const [book, setBook] = useState({ title: "Atomic Habits", current: 0, total: 320 });
+        const [isBailoutMode, setIsBailoutMode] = useState(false);
+        const [penaltyActive, setPenaltyActive] = useState(false);
+        const [sassyMessage, setSassyMessage] = useState("");
         
-        const context = {
-          days: daysUntilWedding,
-          streak: history.length, // Rough proxy for now
-          mood: mood,
-          missed: penaltyActive
+        // Ephemeral
+        const [showConfetti, setShowConfetti] = useState(false);
+        const [showSettings, setShowSettings] = useState(false);
+
+        // 1. Auth Init with Timeout Fallback
+        useEffect(() => {
+          let authTimeout;
+          const initAuth = async () => {
+            try {
+              await signInAnonymously(auth);
+            } catch (e) {
+              console.error("Auth failed, falling back to offline", e);
+              setIsOffline(true);
+              setLoading(false);
+            }
+          };
+          
+          // Set a 3-second timeout. If Firebase hasn't responded, load the app anyway in "Offline Mode"
+          authTimeout = setTimeout(() => {
+            if (loading) {
+              console.warn("Firebase Auth timeout - enabling offline mode");
+              setIsOffline(true);
+              setLoading(false);
+            }
+          }, 3000);
+
+          initAuth();
+          
+          const unsubscribe = onAuthStateChanged(auth, (u) => {
+            clearTimeout(authTimeout);
+            setUser(u);
+            if(!u && !isOffline) setLoading(false); 
+          });
+          return () => {
+            unsubscribe();
+            clearTimeout(authTimeout);
+          }
+        }, []);
+
+        // 2. Data Sync
+        useEffect(() => {
+          if (!user) return;
+          const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+          const today = days[new Date().getDay()];
+          setCurrentDay(today);
+          const todayDate = new Date().toLocaleDateString('en-CA');
+
+          // Listen to Main Settings/Profile
+          const unsubSettings = onSnapshot(doc(db, 'artifacts', appId, 'users', user.uid, 'data', 'main'), (doc) => {
+            if (doc.exists()) {
+              const data = doc.data();
+              if(data.userProfile) setUserProfile(data.userProfile);
+              if(data.goals) setGoals(data.goals);
+              if(data.weightLog) setWeightLog(data.weightLog);
+              if(data.history) setHistory(data.history);
+              if(data.book) setBook(data.book);
+            }
+            setLoading(false);
+          }, (error) => {
+              console.error("Error fetching settings:", error);
+              setLoading(false);
+          });
+
+          // Listen to Today's Log
+          const unsubToday = onSnapshot(doc(db, 'artifacts', appId, 'users', user.uid, 'daily_logs', todayDate), (doc) => {
+            if (doc.exists()) {
+              const data = doc.data();
+              if(data.completed) setCompleted(data.completed);
+              if(data.mood) setMood(data.mood);
+              if(data.habits) setHabits(data.habits);
+              if(data.waterIntake) setWaterIntake(data.waterIntake);
+              if(data.customMeals) setCustomMeals(data.customMeals);
+              if(data.sassyMessage) setSassyMessage(data.sassyMessage);
+            } else {
+              setCompleted({});
+              setMood("");
+              setHabits({ vitamins: false, sleep: false, phone: false });
+              setWaterIntake(0);
+              setCustomMeals({});
+              setSassyMessage("");
+            }
+          }, (error) => {
+              console.error("Error fetching daily log:", error);
+          });
+
+          return () => {
+            unsubSettings();
+            unsubToday();
+          };
+        }, [user]);
+
+        // 3. Penalty Logic Check
+        useEffect(() => {
+          if (history.length > 0) {
+            const yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+            const yesterdayStr = yesterday.toLocaleDateString('en-CA');
+            const lastEntry = history[history.length - 1];
+            const missingYesterday = lastEntry.date !== yesterdayStr && lastEntry.date !== new Date().toLocaleDateString('en-CA');
+            
+            if (lastEntry.date === yesterdayStr) {
+              if ((lastEntry.completed || 0) < (lastEntry.total || 1)) {
+                setPenaltyActive(true);
+              }
+            } else if (missingYesterday) {
+              setPenaltyActive(true);
+            }
+          }
+        }, [history]);
+
+        // 4. AI Message Trigger (Mocked for single file example)
+        useEffect(() => {
+          if (user && !sassyMessage && !loading && !isOffline) {
+            const daysUntilWedding = Math.ceil(Math.abs(WEDDING_DATE - new Date()) / (1000 * 60 * 60 * 24));
+            // In a real app we'd call the AI API here. For this demo, we set a mock one to save quota/complexity
+            setSassyMessage("You got this! The dress isn't going to wear itself.");
+          }
+        }, [user, sassyMessage, loading, penaltyActive, mood, history, isOffline]);
+
+        // Updates
+        const updateMainData = async (field, value) => {
+          if(!user) return;
+          try {
+            await setDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'data', 'main'), { [field]: value }, { merge: true });
+          } catch(e) { console.error("Save failed", e); }
+        };
+
+        const updateDailyLog = async (field, value) => {
+          if(!user) return;
+          try {
+            const todayDate = new Date().toLocaleDateString('en-CA');
+            await setDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'daily_logs', todayDate), { [field]: value }, { merge: true });
+          } catch(e) { console.error("Save failed", e); }
+        };
+
+        // Logic
+        const currentWorkoutList = isBailoutMode ? SURVIVAL_WORKOUT : getDailyWorkout(currentDay, userProfile.level, penaltyActive);
+        const dailyTotalTasks = currentWorkoutList.length + 4;
+        const dailyCompletedCount = Object.keys(completed).length;
+
+        const toggleComplete = async (id) => {
+          const newCompleted = { ...completed, [id]: !completed[id] };
+          setCompleted(newCompleted); // Optimistic
+          await updateDailyLog('completed', newCompleted);
+          
+          // Update History
+          const todayDate = new Date().toLocaleDateString('en-CA');
+          const dayName = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][new Date().getDay()];
+          
+          const otherDays = history.filter(h => h.date !== todayDate);
+          const newHistory = [...otherDays, { date: todayDate, day: dayName, completed: Object.keys(newCompleted).length, total: dailyTotalTasks }];
+          setHistory(newHistory); // Optimistic
+          await updateMainData('history', newHistory);
+        };
+
+        const logCustomMeal = async (id, text) => {
+          const newCustoms = { ...customMeals, [id]: text };
+          setCustomMeals(newCustoms);
+          await updateDailyLog('customMeals', newCustoms);
+          if (!completed[id]) toggleComplete(id);
+        };
+
+        const handleSetUserProfile = (p) => { setUserProfile(p); updateMainData('userProfile', p); };
+        const handleAddWeight = (w) => { 
+          const newLog = [...weightLog, { date: new Date().toLocaleDateString(), weight: w }];
+          setWeightLog(newLog); 
+          updateMainData('weightLog', newLog); 
         };
         
-        const msg = await generateSassyMessage(context);
-        setSassyMessage(msg);
-        updateDailyLog('sassyMessage', msg);
-      };
-      runAI();
-    }
-  }, [user, sassyMessage, loading, penaltyActive, mood, history]);
-
-  // Updates
-  const updateMainData = async (field, value) => {
-    if(!user) return;
-    await setDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'data', 'main'), { [field]: value }, { merge: true });
-  };
-
-  const updateDailyLog = async (field, value) => {
-    if(!user) return;
-    const todayDate = new Date().toLocaleDateString('en-CA');
-    await setDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'daily_logs', todayDate), { [field]: value }, { merge: true });
-  };
-
-  // Logic
-  const currentWorkoutList = isBailoutMode ? SURVIVAL_WORKOUT : getDailyWorkout(currentDay, userProfile.level, penaltyActive);
-  const dailyTotalTasks = currentWorkoutList.length + 4;
-  const dailyCompletedCount = Object.keys(completed).length;
-
-  const toggleComplete = async (id) => {
-    const newCompleted = { ...completed, [id]: !completed[id] };
-    setCompleted(newCompleted); // Optimistic
-    await updateDailyLog('completed', newCompleted);
-    
-    // Update History
-    const todayDate = new Date().toLocaleDateString('en-CA');
-    const dayName = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][new Date().getDay()];
-    
-    const otherDays = history.filter(h => h.date !== todayDate);
-    const newHistory = [...otherDays, { date: todayDate, day: dayName, completed: Object.keys(newCompleted).length, total: dailyTotalTasks }];
-    await updateMainData('history', newHistory);
-  };
-
-  const logCustomMeal = async (id, text) => {
-    const newCustoms = { ...customMeals, [id]: text };
-    setCustomMeals(newCustoms);
-    await updateDailyLog('customMeals', newCustoms);
-    
-    // Also mark as complete if not already
-    if (!completed[id]) {
-      toggleComplete(id);
-    }
-  };
-
-  const handleSetUserProfile = (p) => { setUserProfile(p); updateMainData('userProfile', p); };
-  const handleAddWeight = (w) => { 
-    const newLog = [...weightLog, { date: new Date().toLocaleDateString(), weight: w }];
-    setWeightLog(newLog); 
-    updateMainData('weightLog', newLog); 
-  };
-  
-  const handleGoals = (newGoals) => { setGoals(newGoals); updateMainData('goals', newGoals); };
-  const handleBook = (b) => { setBook(b); updateMainData('book', b); };
-  
-  const handleMood = (m) => { setMood(m); updateDailyLog('mood', m); };
-  const handleWater = (w) => { setWaterIntake(w); updateDailyLog('waterIntake', w); };
-  const handleHabit = (h, v) => { 
-    const newHabits = { ...habits, [h]: v };
-    setHabits(newHabits); 
-    updateDailyLog('habits', newHabits); 
-  };
-  
-  // Derived
-  const xp = dailyCompletedCount * XP_PER_TASK;
-  const streak = 3; 
-  const currentRank = RANKS.slice().reverse().find(r => xp >= r.threshold) || RANKS[0];
-  const daysUntilWedding = Math.ceil(Math.abs(WEDDING_DATE - new Date()) / (1000 * 60 * 60 * 24));
-  const badges = []; 
-  if (dailyCompletedCount > 0) badges.push('first_step');
-  if (dailyCompletedCount === dailyTotalTasks && dailyTotalTasks > 0) badges.push('perfect_day');
-  if (waterIntake >= 8) badges.push('hydrated');
-
-  if (loading) return <div className="min-h-screen flex items-center justify-center bg-stone-50"><Loader2 className="animate-spin text-emerald-500" size={48} /></div>;
-
-  return (
-    <div className="min-h-screen bg-stone-50 font-sans text-stone-900 pb-20 overflow-x-hidden">
-      <Header activeTab={activeTab} setActiveTab={setActiveTab} streak={streak} rank={currentRank} />
-
-      <main className="max-w-md mx-auto p-4 pt-6">
+        const handleGoals = (newGoals) => { setGoals(newGoals); updateMainData('goals', newGoals); };
+        const handleBook = (b) => { setBook(b); updateMainData('book', b); };
         
-        <div className="flex justify-end mb-2">
-          <button onClick={() => setShowSettings(true)} className="text-xs text-stone-400 flex items-center gap-1 hover:text-stone-600"><Settings size={12} /> Personalize</button>
-        </div>
+        const handleMood = (m) => { setMood(m); updateDailyLog('mood', m); };
+        const handleWater = (w) => { setWaterIntake(w); updateDailyLog('waterIntake', w); };
+        const handleHabit = (h, v) => { 
+          const newHabits = { ...habits, [h]: v };
+          setHabits(newHabits); 
+          updateDailyLog('habits', newHabits); 
+        };
+        
+        // Derived
+        const xp = dailyCompletedCount * XP_PER_TASK;
+        const streak = history.length; 
+        const currentRank = RANKS.slice().reverse().find(r => xp >= r.threshold) || RANKS[0];
+        const daysUntilWedding = Math.ceil(Math.abs(WEDDING_DATE - new Date()) / (1000 * 60 * 60 * 24));
+        const badges = []; 
+        if (dailyCompletedCount > 0) badges.push('first_step');
+        if (dailyCompletedCount === dailyTotalTasks && dailyTotalTasks > 0) badges.push('perfect_day');
+        if (waterIntake >= 8) badges.push('hydrated');
 
-        {showSettings && <SettingsModal userProfile={userProfile} setUserProfile={handleSetUserProfile} onClose={() => setShowSettings(false)} />}
+        if (loading) return <div className="min-h-screen flex items-center justify-center bg-stone-50"><Loader2 className="animate-spin text-emerald-500" size={48} /></div>;
 
-        {activeTab === 'dashboard' && (
-          <Dashboard 
-            day={currentDay} setDay={setCurrentDay} stats={{name: userProfile.name}} progress={{completed: dailyCompletedCount, total: dailyTotalTasks}}
-            weddingDays={daysUntilWedding} badges={badges} rank={currentRank} xp={xp} showConfetti={badges.includes('perfect_day')} userLevel={userProfile.level}
-            penaltyActive={penaltyActive} sassyMessage={sassyMessage}
-          />
-        )}
+        return (
+          <div className="min-h-screen bg-stone-50 font-sans text-stone-900 pb-20 overflow-x-hidden">
+            <Header activeTab={activeTab} setActiveTab={setActiveTab} streak={streak} rank={currentRank} offline={isOffline} />
 
-        {activeTab === 'workout' && (
-          <div className="animate-slide-up">
-            <div className="mb-4">
-              <h2 className="text-2xl font-bold text-stone-800">Movement</h2>
-              <p className="text-stone-500 mb-4">Focus: <span className="text-emerald-600 font-semibold">{userProfile.level === 'beginner' ? 'Survival' : 'Gains'}</span></p>
-              <BailoutButton isActive={isBailoutMode} onToggle={() => setIsBailoutMode(!isBailoutMode)} />
-            </div>
-            <div className="space-y-1">
-              {currentWorkoutList.map(exercise => (
-                <WorkoutCard 
-                  key={exercise.id} exercise={exercise} isCompleted={!!completed[exercise.id]} toggleComplete={toggleComplete}
-                  isSurvival={isBailoutMode}
+            <main className="max-w-md mx-auto p-4 pt-6">
+              
+              <div className="flex justify-end mb-2">
+                <button onClick={() => setShowSettings(true)} className="text-xs text-stone-400 flex items-center gap-1 hover:text-stone-600"><Settings size={12} /> Personalize</button>
+              </div>
+
+              {showSettings && <SettingsModal userProfile={userProfile} setUserProfile={handleSetUserProfile} onClose={() => setShowSettings(false)} />}
+
+              {activeTab === 'dashboard' && (
+                <Dashboard 
+                  day={currentDay} setDay={setCurrentDay} stats={{name: userProfile.name}} progress={{completed: dailyCompletedCount, total: dailyTotalTasks}}
+                  weddingDays={daysUntilWedding} badges={badges} rank={currentRank} xp={xp} showConfetti={badges.includes('perfect_day')} userLevel={userProfile.level}
+                  penaltyActive={penaltyActive} sassyMessage={sassyMessage}
                 />
-              ))}
-            </div>
-          </div>
-        )}
+              )}
 
-        {activeTab === 'meals' && (
-          <div className="animate-slide-up">
-            <div className="mb-6"><h2 className="text-2xl font-bold text-stone-800">Fuel</h2></div>
-            <div className="space-y-1">
-              {['Breakfast', 'Lunch', 'Snack', 'Dinner'].map(t => {
-                const id = `${t.toLowerCase()}-${t === 'Breakfast' ? "Oats" : t === 'Lunch' ? "Wrap" : t === 'Dinner' ? "Salmon" : "Fruit"}`; // Note: Ideally use stable IDs
-                return (
-                  <MealCard 
-                    key={t} type={t.toLowerCase()} 
-                    meal={t === 'Breakfast' ? "Oats" : t === 'Lunch' ? "Wrap" : t === 'Dinner' ? "Salmon" : "Fruit"} 
-                    isCompleted={!!completed[id]} 
-                    toggleComplete={() => toggleComplete(id)}
-                    customMeal={customMeals[id]}
-                    onLogCustom={(txt) => logCustomMeal(id, txt)}
-                  />
-                )
-              })}
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'stats' && <StatsView history={history} weightLog={weightLog} saveWeight={handleAddWeight} />}
-
-        {activeTab === 'life' && (
-          <LifeTracker 
-            daysUntilWedding={daysUntilWedding} book={book} setBook={handleBook} mood={mood} setMood={handleMood} habits={habits} toggleHabit={(h) => handleHabit(h, !habits[h])}
-            waterIntake={waterIntake} incrementWater={(v) => handleWater(v === waterIntake ? v-1 : v)} goals={goals} 
-            addGoal={(t, f) => handleGoals([...goals, {id: Date.now(), text: t, freq: f, completed: false}])} 
-            toggleGoal={(id) => handleGoals(goals.map(g => g.id === id ? {...g, completed: !g.completed} : g))}
-            removeGoal={(id) => handleGoals(goals.filter(g => g.id !== id))}
-          />
-        )}
-
-        {activeTab === 'grocery' && (
-          <div className="animate-slide-up">
-             <div className="mb-6"><h2 className="text-2xl font-bold text-stone-800">Grocery List</h2></div>
-             {GROCERY_LIST.map((cat, idx) => (
-                <div key={idx} className="bg-white rounded-2xl shadow-sm border border-stone-100 overflow-hidden mb-4">
-                  <h3 className="bg-stone-50 p-3 font-semibold text-stone-700 border-b border-stone-100">{cat.category}</h3>
-                  <div className="p-2">{cat.items.map((item) => <div key={item} className="flex items-center gap-3 p-3"><Circle size={20} className="text-stone-300" /><span>{item}</span></div>)}</div>
+              {activeTab === 'workout' && (
+                <div className="animate-slide-up">
+                  <div className="mb-4">
+                    <h2 className="text-2xl font-bold text-stone-800">Movement</h2>
+                    <p className="text-stone-500 mb-4">Focus: <span className="text-emerald-600 font-semibold">{userProfile.level === 'beginner' ? 'Survival' : 'Gains'}</span></p>
+                    <BailoutButton isActive={isBailoutMode} onToggle={() => setIsBailoutMode(!isBailoutMode)} />
+                  </div>
+                  <div className="space-y-1">
+                    {currentWorkoutList.map(exercise => (
+                      <WorkoutCard 
+                        key={exercise.id} exercise={exercise} isCompleted={!!completed[exercise.id]} toggleComplete={toggleComplete}
+                        isSurvival={isBailoutMode}
+                      />
+                    ))}
+                  </div>
                 </div>
-             ))}
-          </div>
-        )}
+              )}
 
-      </main>
-    </div>
-  );
-}
+              {activeTab === 'meals' && (
+                <div className="animate-slide-up">
+                  <div className="mb-6"><h2 className="text-2xl font-bold text-stone-800">Fuel</h2></div>
+                  <div className="space-y-1">
+                    {['Breakfast', 'Lunch', 'Snack', 'Dinner'].map(t => {
+                      const id = `${t.toLowerCase()}-${t === 'Breakfast' ? "Oats" : t === 'Lunch' ? "Wrap" : t === 'Dinner' ? "Salmon" : "Fruit"}`; 
+                      return (
+                        <MealCard 
+                          key={t} type={t.toLowerCase()} 
+                          meal={t === 'Breakfast' ? "Oats" : t === 'Lunch' ? "Wrap" : t === 'Dinner' ? "Salmon" : "Fruit"} 
+                          isCompleted={!!completed[id]} 
+                          toggleComplete={() => toggleComplete(id)}
+                          customMeal={customMeals[id]}
+                          onLogCustom={(txt) => logCustomMeal(id, txt)}
+                        />
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'stats' && <StatsView history={history} weightLog={weightLog} saveWeight={handleAddWeight} />}
+
+              {activeTab === 'life' && (
+                <LifeTracker 
+                  daysUntilWedding={daysUntilWedding} book={book} setBook={handleBook} mood={mood} setMood={handleMood} habits={habits} toggleHabit={(h) => handleHabit(h, !habits[h])}
+                  waterIntake={waterIntake} incrementWater={(v) => handleWater(v === waterIntake ? v-1 : v)} goals={goals} 
+                  addGoal={(t, f) => handleGoals([...goals, {id: Date.now(), text: t, freq: f, completed: false}])} 
+                  toggleGoal={(id) => handleGoals(goals.map(g => g.id === id ? {...g, completed: !g.completed} : g))}
+                  removeGoal={(id) => handleGoals(goals.filter(g => g.id !== id))}
+                />
+              )}
+
+              {activeTab === 'grocery' && (
+                <div className="animate-slide-up">
+                   <div className="mb-6"><h2 className="text-2xl font-bold text-stone-800">Grocery List</h2></div>
+                   {GROCERY_LIST.map((cat, idx) => (
+                      <div key={idx} className="bg-white rounded-2xl shadow-sm border border-stone-100 overflow-hidden mb-4">
+                        <h3 className="bg-stone-50 p-3 font-semibold text-stone-700 border-b border-stone-100">{cat.category}</h3>
+                        <div className="p-2">{cat.items.map((item) => <div key={item} className="flex items-center gap-3 p-3"><Circle size={20} className="text-stone-300" /><span>{item}</span></div>)}</div>
+                      </div>
+                   ))}
+                </div>
+              )}
+
+            </main>
+          </div>
+        );
+      }
+
+      const root = ReactDOM.createRoot(document.getElementById('root'));
+      root.render(<App />);
+    </script>
+</body>
+</html>
