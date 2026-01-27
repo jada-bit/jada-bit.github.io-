@@ -60,11 +60,14 @@ import { initializeApp } from "firebase/app";
 import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "firebase/auth";
 import { getFirestore, doc, setDoc, onSnapshot, collection, getDoc } from "firebase/firestore";
 
-// Initialize Firebase with environment config
+// Initialize Firebase with your specific config as fallback
 const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
-  apiKey: "", 
-  authDomain: "",
-  projectId: ""
+  apiKey: "AIzaSyDCPpL5QxwugpiKtqOMxxE07cKmFXqev8c",
+  authDomain: "jada-workout-app.firebaseapp.com",
+  projectId: "jada-workout-app",
+  storageBucket: "jada-workout-app.firebasestorage.app",
+  messagingSenderId: "226714322940",
+  appId: "1:226714322940:web:004854e900b8a96b879479"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -103,7 +106,6 @@ const generateSassyMessage = async (context) => {
     return data.candidates?.[0]?.content?.parts?.[0]?.text || "Eyes on the prize, babe. The aisle is waiting.";
   } catch (e) {
     console.error("AI Error", e);
-    // Fallback messages if AI fails or network issues
     const fallbacks = [
         "Do it for the photos.",
         "I'm watching you. Go workout.",
@@ -148,8 +150,6 @@ const ACHIEVEMENTS = [
   { id: 'perfect_day', title: "100%", desc: "Complete all tasks in a day", icon: <Star size={18} /> },
   { id: 'survivor', title: "Survivor", desc: "Use the Bailout Button", icon: <AlertTriangle size={18} /> }
 ];
-
-// --- PERSONALIZATION ENGINE ---
 
 const WORKOUT_DATABASE = {
   beginner: {
@@ -247,13 +247,11 @@ const SURVIVAL_WORKOUT = [
 ];
 
 const GROCERY_LIST = [
-  { category: "Produce", items: ["Spinach", "Bananas", "Berries", "Avocados", "Asparagus", "Apples", "Sweet Potatoes", "Bell Peppers"] },
+  { category: "Produce", items: ["Spinach", "Bananas", "Berries", "Avocados", "Asparagus", "Apples", "Sweet Potatoes", "Bell Peppers", "Onion", "Garlic", "Broccoli", "Snap Peas"] },
   { category: "Proteins", items: ["Chicken Breast", "Salmon", "Lean Beef", "Eggs", "Tuna"] },
   { category: "Dairy", items: ["Greek Yogurt", "Almond Milk", "Cottage Cheese"] },
   { category: "Pantry", items: ["Oats", "Quinoa", "Rice", "Tortillas", "Protein Powder", "Almonds"] },
 ];
-
-// --- COMPONENTS ---
 
 const Header = ({ activeTab, setActiveTab, streak, rank }) => (
   <header className="bg-stone-900 text-stone-50 p-4 sticky top-0 z-50 shadow-md">
